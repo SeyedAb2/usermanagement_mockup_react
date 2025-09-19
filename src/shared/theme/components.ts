@@ -14,4 +14,5 @@ export const components = (theme: Theme): Components<Omit<Theme, 'components'>> 
   MuiPaper: {
     // styleOverrides: { rounded: { borderRadius: 16 } },
   },
+  
 });

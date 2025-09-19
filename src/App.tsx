@@ -1,4 +1,3 @@
-import { BrowserRouter } from "react-router";
 import {HelmetProvider} from 'react-helmet-async';
 
 import ThemeProvider from './app/providers/ThemeProvider.tsx'

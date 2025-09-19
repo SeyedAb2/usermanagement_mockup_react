@@ -1,5 +1,6 @@
 import { lazy } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
+import AboutUs from "../../pages/about-us/AboutUs";
 
 const MainLayout = lazy(()=>import('../../shared/components/layouts/MainLayout'))
 const LandingPage = lazy(()=>import('../../pages/landing/LandingPage'))
@@ -15,6 +16,7 @@ const router = createBrowserRouter([
       { index: true, element: <LandingPage /> }, 
       { path: 'login', element: <Login /> },
       { path: 'signup', element: <SingUp /> },
+      { path: 'about-us', element: <AboutUs /> },
     ],
   },
 ]);
