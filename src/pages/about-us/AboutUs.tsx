@@ -22,6 +22,7 @@ import {
   AccessTime,
 } from "@mui/icons-material";
 import Seo from "../../shared/components/seo/Seo";
+import { toPersianDegit } from './../../shared/utils/toPersianDigits';
 
 export default function AboutUs() {
   const theme = useTheme();
@@ -80,7 +81,7 @@ export default function AboutUs() {
                       <ListItemText
                         primary={
                           <Stack direction="column" spacing={0}>
-                            <Link href="tel:02112345678" underline="hover">021-12345678</Link>
+                            <Link href="tel:02112345678" underline="hover">{toPersianDegit('021-12345678')}</Link>
                             <Typography sx={{fontSize:12}}>پاسخگویی: همه‌روزه ۹ الی ۱۸</Typography>
                           </Stack>
                         }
