@@ -52,7 +52,7 @@ export default function MyProducts() {
               variant="contained"
               startIcon={<AddCircleOutline />}
               component={RouterLink}
-              to="/products/create"
+              to="/dashboard/my-products/create"
               sx={{ height: 56, borderRadius: 2, whiteSpace: "nowrap", width: { xs: "100%", md: "auto" } }}
             >
               افزودن محصول جدید

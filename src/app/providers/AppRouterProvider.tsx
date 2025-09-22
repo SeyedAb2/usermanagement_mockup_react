@@ -15,6 +15,7 @@ const Dashboard = lazy(() => import("../../pages/dashboard/Dashboard"));
 const Info = lazy(() => import("../../pages/dashboard/info/Info"));
 const MyProducts = lazy(() => import("../../pages/dashboard/my-products/MyProducts"));
 const ResetPass = lazy(() => import("../../pages/dashboard/reset-pass/ResetPass"));
+const ProductForm = lazy(() => import("../../pages/dashboard/my-products/make-product/MakeProduct"));
 
 
 const router = createBrowserRouter([
@@ -39,6 +40,8 @@ const router = createBrowserRouter([
           { index: true, element: <Info /> },        // اگر /dashboard خالی بود
           { path: "info", element: <Info /> },
           { path: "my-products", element: <MyProducts /> },
+          { path: "my-products/create", element: <ProductForm /> },
+          { path: "my-products/:productId/edit", element: <ProductForm /> },
           { path: "reset-pass", element: <ResetPass /> },
         ],
       }

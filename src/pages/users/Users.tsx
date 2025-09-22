@@ -188,13 +188,13 @@ export default function UsersPage() {
                         <Typography variant="subtitle1" fontWeight={700}>
                           {u.firstName} {u.lastName}
                         </Typography>
-                        <Stack direction="row" spacing={1} alignItems="center">
+                        <Stack direction="row" spacing={0} justifyContent='center' alignItems="center">
                           <Chip
                             size="small"
                             color="success"
                             icon={TYPE_ICON[u.type]}
                             label={TYPE_LABEL[u.type]}
-                            sx={{ "& .MuiChip-icon": { ml: 0.5 } }}
+                            sx={{ "& .MuiChip-icon": { mr: 0.5 },"& .MuiChip-label":{pr:0} }}
                           />
                         </Stack>
                       </Box>
