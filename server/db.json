@@ -1,0 +1,20 @@
+{
+  "users": [
+    {
+      "description": "",
+      "logo": null,
+      "type": "farmer",
+      "address": "",
+      "age": null,
+      "social": {
+        "telegram": "",
+        "instagram": "",
+        "twitter": ""
+      },
+      "name": "حسین رضانیا",
+      "phone": "9302010811",
+      "password": "@ab32542244",
+      "id": 1
+    }
+  ]
+}

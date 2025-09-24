@@ -11,28 +11,35 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
-import ProductionQuantityLimitsOutlinedIcon from '@mui/icons-material/ProductionQuantityLimitsOutlined';
-import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import BedtimeIcon from '@mui/icons-material/Bedtime';
 import SunnyIcon from '@mui/icons-material/Sunny';
 import LoginIcon from '@mui/icons-material/Login';
 
 import LogoSrc from '../../../assets/images/logo.png';
-import { Link } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { useUIStore } from '../../../store/ui.store';
+import { ListPageIconType, UserType } from '../../types';
+import { menuItem, settingItem } from '../../utils/menuItem';
+import { useAuthStore } from '../../../store/auth.store';
+import { scrollToTop } from '../../utils/scrollToTop';
+import useToastify from '../../hooks/useToastify';
+import { Stack, useMediaQuery, useTheme } from '@mui/material';
+import { Link as RouterLink } from "react-router";
 
-const pages = [
-    {name:'محصولات',path:'/products',icon:  <ProductionQuantityLimitsOutlinedIcon sx={{fontSize:20}}/>},
-    {name:'کاربران',path:'/users',icon: <PeopleAltOutlinedIcon sx={{fontSize:20}}/>},
-    {name:'درباره ما',path:'/about-us',icon: <InfoOutlinedIcon sx={{fontSize:20}}/>}
-];
-const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
 const Header = () => {
+  const theme = useTheme();
+  const downSm = useMediaQuery(theme.breakpoints.down("sm"));
+  const navigate = useNavigate()
+  const loc = useLocation();
+  const pages:ListPageIconType[] = menuItem;
+  const settings: ListPageIconType[] = settingItem;
   const themeMode = useUIStore((state)=>state)
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
+  const {getUser  , isLogined , logout} = useAuthStore()
+  const { notify } = useToastify()
+  const user:UserType|null = getUser()
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
@@ -49,7 +56,12 @@ const Header = () => {
     setAnchorElUser(null);
   };
 
-  
+  const logoutUser = ()=>{
+    logout();
+    navigate('/login')
+    scrollToTop()
+    notify({type:'info',message:'با موفقیت خارج شدید'})
+  }
 
   return (
     <AppBar position="sticky"
@@ -113,13 +125,16 @@ const Header = () => {
               onClose={handleCloseNavMenu}
               sx={{ display: { xs: 'block', md: 'none' } }}
             >
-              {pages.map((page) => (
-                  <Link viewTransition to={page.path} >
-                    <MenuItem key={page.name} onClick={handleCloseNavMenu}>
-                        <Typography sx={{ display:'flex',gap:1, justifyContent:'start', alignItems:'center' , textAlign: 'center' , color:'primary.main' }}>{page.icon}{page.name}</Typography>
-                    </MenuItem>
-                  </Link>
-              ))}
+              {pages.map((page) => {
+                const active = loc.pathname.startsWith(page.path);
+                return (
+                  <MenuItem key={page.name} selected={active} onClick={handleCloseNavMenu}>
+                    <Typography sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+                      {page.icon}{page.name}
+                    </Typography>
+                  </MenuItem>
+                );
+              })}
             </Menu>
           </Box>
 
@@ -139,7 +154,7 @@ const Header = () => {
                         noWrap
                         sx={{
                         mr: 2,
-                        display: { xs: 'flex', md: 'none' },
+                        display: { xs: 'none', sm:'flex'},
                         flexGrow: 1,
                         fontWeight: 700,
                         letterSpacing: '.3rem',
@@ -154,20 +169,20 @@ const Header = () => {
           </Box>
           
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex', marginRight:100 } }}>
-            {pages.map((page) => (
-              <Link viewTransition to={page.path}>
+            {pages.map((page) => {
+              const active = loc.pathname.startsWith(page.path);
+              return (<Link key={page.name} viewTransition to={page.path}>
                 <Button
-                  key={page.name}
                   onClick={handleCloseNavMenu}
-                  sx={{ my: 2, display: 'flex' , color:'primary', justifyContent:'center', alignItems:'center' }}
+                  sx={{ my: 2, display: 'flex' , color:active ? 'wlc.600' : 'primary', bgcolor:active ? 'wlc.100' : '', justifyContent:'center', alignItems:'center' }}
                 >
                   {page.icon}
                   <Typography variant='body2' sx={{marginX:1}}>
                       {page.name}
                   </Typography>
                 </Button>
-              </Link>
-            ))}
+              </Link>)
+            })}
           </Box>
 
           <Box sx={{ flexGrow: 0 }}>
@@ -175,20 +190,32 @@ const Header = () => {
                 {themeMode.themeMode=='light' ? <BedtimeIcon /> : <SunnyIcon /> }
             </IconButton >
 
-                <Link to="/login" viewTransition>
-                    <Button variant='contained'>
-                            <LoginIcon />
-                            <Typography sx={{marginX:1}} variant='body1'>
-                                ورود
-                            </Typography>
-                    </Button>
-                </Link>
+            {!isLogined() && <Link to="/login" viewTransition>
+                <Button variant='contained' size={downSm ? 'small' : 'medium' }>
+                  <LoginIcon />
+                  <Typography sx={{marginX:1, display:{xs:'none', sm:'flex'}}} variant='body1'>
+                      ورود
+                  </Typography>
+                </Button>
+            </Link>}
 
-            <Tooltip title="Open settings">
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0, display:'none' }}>
-                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
+            {isLogined() && <Tooltip sx={{borderRadius:2}} title="Open settings">
+              <IconButton disableRipple onClick={handleOpenUserMenu}  sx={{ p: 0 }}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Avatar
+                    alt={user?.name ?? "User"}
+                    src={user?.logo ?? undefined}
+                    sx={{ width: 32, height: 32 }}
+                  />
+                  <Typography
+                    variant="body2"
+                    sx={{ display: { xs: 'none', sm: 'inline-block' }, px:1 }}
+                  >
+                    {user?.name ?? ''}
+                  </Typography>
+                </Stack>
               </IconButton>
-            </Tooltip>
+            </Tooltip>}
             <Menu
               sx={{ mt: '45px' }}
               id="menu-appbar"
@@ -206,9 +233,11 @@ const Header = () => {
               onClose={handleCloseUserMenu}
             >
               {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                  <Typography sx={{ textAlign: 'center' }}>{setting}</Typography>
-                </MenuItem>
+                  <MenuItem component={setting.disablePath ? 'button' : RouterLink} key={setting.name} to={!setting.disablePath ? setting.path : '' } onClick={()=>{
+                    handleCloseUserMenu()
+                    if(setting.disablePath) {logoutUser()} }} >
+                      <Typography sx={{ display:'flex',gap:1, justifyContent:'start', alignItems:'center' , textAlign: 'center' , color:setting.type=='danger' ? 'error.main' : 'primary.main' }}>{setting.icon}{setting.name}</Typography>
+                  </MenuItem>
               ))}
             </Menu>
           </Box>
