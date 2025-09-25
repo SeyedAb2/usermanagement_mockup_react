@@ -7,6 +7,7 @@ import {
   Button,
   InputAdornment,
   CircularProgress,
+  MenuItem,
 } from "@mui/material";
 import { Phone } from "@mui/icons-material";
 import BadgeIcon from '@mui/icons-material/Badge';
@@ -26,13 +27,14 @@ import { SignUpValidationSchema } from "../../../shared/validations/signupSchema
 import { UserType } from "../../../shared/types";
 import useSignUp from "../../../shared/hooks/useSignup";
 import { otherUserFields } from './../../../shared/utils/otherUserField';
+import { USER_TYPE_LABEL, UserKind } from "../../../shared/utils/userTypeList";
 
 
 export default function SignUp() {
   const defaultFields = otherUserFields
   const [passwordType, setPasswordType] = useState('password')
   const { isPending, mutate} = useSignUp()
-  const {handleSubmit, control, register , formState : {errors}} = useForm({
+  const {watch, setValue ,handleSubmit, control, register , formState : {errors}} = useForm({
     resolver: yupResolver(SignUpValidationSchema)
   })
 
@@ -71,13 +73,13 @@ export default function SignUp() {
               {/* نام و نام خانوادگی */}
               <TextField
                 fullWidth
-                sx={LabelPosition({gap:0})}
+                sx={LabelPosition({right:10,rightActive:26})}
                 label="نام و نام خانوادگی"
                 type="text"
                 error={errors.name?.message ? true : false}
                 {...register('name')}
-                variant="outlined"
                 placeholder="مثال : مجتبی اکبری"
+                variant="outlined"
                 margin="normal"
                 InputLabelProps={{ shrink: true }}
                 inputProps={{ dir: "rtl" }}
@@ -92,6 +94,28 @@ export default function SignUp() {
               <Typography variant="body2" sx={{color:'error.main', fontSize:10}}>{errors.name?.message}</Typography>
 
               <TextField
+                select
+                fullWidth
+                label="نوع کاربر"
+                variant="outlined"
+                margin="normal"
+                sx={LabelPosition({ right: 10, rightActive: 28 })}
+                InputLabelProps={{ shrink: true }}
+                error={!!errors.type?.message}
+                value={watch('type') ?? ""}               // خالی تا ارور نده
+                onChange={(e) => setValue('type',e.target.value as UserKind)}
+              >
+                {(Object.entries(USER_TYPE_LABEL) as [UserKind, string][])
+                  .map(([value, label]) => (
+                    <MenuItem key={value} value={value}>
+                      {label} {/* نمایش فارسی */}
+                    </MenuItem>
+                  ))}
+              </TextField>
+              <Typography variant="body2" sx={{ color: "error.main", fontSize: 10 }}>
+                {errors.type?.message}
+              </Typography>
+              <TextField
                 fullWidth
                 label="شماره تلفن"
                 variant="outlined"
@@ -99,7 +123,7 @@ export default function SignUp() {
                 error={errors.phone?.message ? true : false}
                 {...register('phone')}
                 placeholder="مثال: ۹۱۲۳۴۵۶۷۸۹"
-                sx={LabelPosition({gap:10})}    
+                sx={LabelPosition({right:10,rightActive:28})}    
                 InputLabelProps={{ shrink: true }}
                 inputProps={{ dir: "ltr" }} 
                 InputProps={{
@@ -132,7 +156,6 @@ export default function SignUp() {
               {/* رمز عبور */}
               <TextField
                 fullWidth
-                sx={LabelPosition({gap:14})}
                 label="رمز عبور"
                 type={passwordType}
                 error={errors.password?.message ? true : false}

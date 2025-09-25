@@ -1,24 +1,21 @@
 import { useMutation } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/auth.store";
 import { UserType } from "../types";
-import { signupApi } from "../../services/api/auth";
-import { useNavigate } from "react-router";
+import { patchUserApi } from "../../services/api/auth";
 import { scrollToTop } from "../utils/scrollToTop";
 import useToastify from "./useToastify";
 
-export default function useSignUp(){
+export default function usePatchUser(){
 
     const { setUser } = useAuthStore()
-    const navigate = useNavigate()
     const { notify } = useToastify();
     return useMutation({
-        mutationKey:['signup'],
-        mutationFn:(data:UserType)=>signupApi(data),
+        mutationKey:['patch-user'],
+        mutationFn:(data:UserType)=>patchUserApi(data),
         onSuccess:(data:UserType)=>{
             scrollToTop();
             setUser(data);
-            notify({type:'success',message:'ثبت نام با موفقیت انجام شد'})
-            setTimeout(() => {navigate('/dashboard')}, 500);
+            notify({type:'info',message:'اطلاعات با موفقیت ویرایش شد'})
         },
         onError:(error)=>{
             notify({type:'error',message:error.message})

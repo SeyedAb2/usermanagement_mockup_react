@@ -1,20 +1,107 @@
 {
   "users": [
     {
-      "description": "",
+      "description": "یک کشاورز با سابقه ۱۵ سال فعالیت پویا درحوزه کشاورزی به همراه مدارکی معتبر از سازمان جهاد و کشاورزی کشور",
       "logo": null,
       "type": "farmer",
-      "address": "",
-      "age": null,
+      "address": "جاده بابل کیاکلا روستای رمنت",
+      "age": 26,
       "social": {
-        "telegram": "",
-        "instagram": "",
+        "telegram": "hsnrr",
+        "instagram": "hsrr_sw",
+        "twitter": "hsrn_ws2"
+      },
+      "name": "حسین رضانیا رمی",
+      "phone": "9302010811",
+      "password": "@ab1212",
+      "id": 1,
+      "confirmPassword": "@ab1212"
+    },
+    {
+      "name": "مسعود حسن زاده",
+      "phone": "9112112220",
+      "id": 2,
+      "description": "۱۲ سال هست سابقه فروش قطعات و محصولات کشاورزی را دارم بالای ۲۵ سال سابقه کشاورزی و زمین داری و نزدیک ۸ سال سابقه نگهداری دام و طیور را دارا هستم",
+      "logo": null,
+      "type": "service",
+      "address": "بابل منطقه خوش رودپی",
+      "age": 55,
+      "social": {
+        "telegram": "massodsw2_1",
+        "instagram": "masoud_sw2",
         "twitter": ""
       },
-      "name": "حسین رضانیا",
-      "phone": "9302010811",
-      "password": "@ab32542244",
-      "id": 1
+      "password": "asdsads@dasd21"
+    }
+  ],
+  "products": [
+    {
+      "type": "tools",
+      "additional_data": {
+        "capacity": "۸ هکتار در ساعت",
+        "producer": "مالکوم رومانیایی",
+        "model": "high class",
+        "color": "قرمز روشن",
+        "size": "۲۲ متر در ۱۲ متر",
+        "is_new": true,
+        "year_of_production": 2016,
+        "weight": 1600
+      },
+      "address": "تهران - میدان انقلاب اسلامی",
+      "image": null,
+      "info": "تراکتور سری جدید شرکت مالکوم کشور رومانیایی با ساختار چدن",
+      "price": "120000000",
+      "title": "تراکتور رومانی ۵۲۱",
+      "user": {
+        "name": "مسعود حسن زاده",
+        "phone": "9112112220",
+        "id": 2,
+        "description": "۱۲ سال هست سابقه فروش قطعات و محصولات کشاورزی را دارم بالای ۲۵ سال سابقه کشاورزی و زمین داری و نزدیک ۸ سال سابقه نگهداری دام و طیور را دارا هستم",
+        "logo": null,
+        "type": "service",
+        "address": "بابل منطقه خوش رودپی",
+        "age": 55,
+        "social": {
+          "telegram": "massodsw2_1",
+          "instagram": "masoud_sw2",
+          "twitter": ""
+        },
+        "password": "asdsads@dasd21"
+      },
+      "id": 1,
+      "created_at": "2025-04-25T13:16:24.630Z"
+    },
+    {
+      "type": "produce",
+      "additional_data": {
+        "count": 120,
+        "grade": "high",
+        "type_product": "water",
+        "price_of_weight": 220000
+      },
+      "address": "مازندران- فریدون کنار",
+      "image": null,
+      "info": "برنج اصل طارم هاشمی محصول برداشت شده امسال از مزارع فریدون کنار",
+      "price": "1800000",
+      "title": "برنج طارم هاشمی",
+      "user": {
+        "name": "مسعود حسن زاده",
+        "phone": "9112112220",
+        "id": 2,
+        "description": "۱۲ سال هست سابقه فروش قطعات و محصولات کشاورزی را دارم بالای ۲۵ سال سابقه کشاورزی و زمین داری و نزدیک ۸ سال سابقه نگهداری دام و طیور را دارا هستم",
+        "logo": null,
+        "type": "service",
+        "address": "بابل منطقه خوش رودپی",
+        "age": 55,
+        "social": {
+          "telegram": "massodsw2_1",
+          "instagram": "masoud_sw2",
+          "twitter": ""
+        },
+        "password": "asdsads@dasd21"
+      },
+      "created_at": "2025-09-25T16:06:54.630Z",
+      "id": 2
     }
   ]
 }

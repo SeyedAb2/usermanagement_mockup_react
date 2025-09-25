@@ -40,8 +40,8 @@ const router = createBrowserRouter([
           { index: true, element: <Info /> },        // اگر /dashboard خالی بود
           { path: "info", element: <Info /> },
           { path: "my-products", element: <MyProducts /> },
-          { path: "my-products/create", element: <ProductForm /> },
-          { path: "my-products/:productId/edit", element: <ProductForm /> },
+          { path: "my-products/create", element: <ProductForm ACTION="ADD"/> },
+          { path: "my-products/:productId/edit", element: <ProductForm ACTION="EDIT"/> },
           { path: "reset-pass", element: <ResetPass /> },
         ],
       }

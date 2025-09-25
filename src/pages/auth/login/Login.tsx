@@ -69,7 +69,7 @@ export default function Login() {
                 error={errors.phone?.message ? true : false}
                 {...register('phone')}
                 placeholder="مثال : ۹۱۲۳۴۵۶۷۸۹"
-                sx={LabelPosition({gap:10})}    
+                sx={LabelPosition({rightActive:27,right:10})}    
                 InputLabelProps={{ shrink: true }}
                 inputProps={{ dir: "ltr" }} 
                 InputProps={{
@@ -101,7 +101,7 @@ export default function Login() {
 
             <TextField
               fullWidth
-              sx={LabelPosition({gap:14})}
+              sx={LabelPosition({rightActive:28,right:15})}
               label="رمز عبور"
               type="password"
               variant="outlined"

@@ -1,369 +1,488 @@
-import { useMemo, useState } from "react";
+// ProductForm.tsx
+import * as yup from "yup";
 import {
-  Box, Button, Card, CardContent, Checkbox, Divider, FormControlLabel,
-  Grid, InputAdornment, MenuItem, Select, Stack,
-  TextField, Tooltip, Typography
-} from "@mui/material"; // Grid v2 – size={{}}
+  Avatar, Box, Button, Card, IconButton, InputAdornment, Stack,
+  TextField, Tooltip, Typography, Grid, MenuItem, CircularProgress
+} from "@mui/material";
 import {
-  SaveOutlined, ArrowBack, UploadFileOutlined, CategoryOutlined, ImageOutlined
+  CameraAltOutlined, SaveOutlined, ImageOutlined, CategoryOutlined, PlaceOutlined
 } from "@mui/icons-material";
-import { useNavigate } from "react-router";
+import { useForm, Controller } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 
-type CategoryKey = "tools" | "land" | "crop" | "supplement";
-const CATEGORY_LABEL: Record<CategoryKey, string> = {
+import type { ProductType } from "../../../../shared/types";
+import { LabelPosition } from "../../../../shared/utils/textFieldLabelStyleConfig";
+import {
+  PRODUCT_TYPES, GRAND_TYPES, FARM_PRODUCT_TYPES, FARM_GRADES
+} from "../../../../shared/utils/product-const";
+import { ProductValidationSchema } from "../../../../shared/validations/productSchema";
+import useProduct from "../../../../shared/hooks/useProduct";
+import { useParams } from "react-router";
+import { useQuery } from "@tanstack/react-query";
+import { getProductApi } from "../../../../services/api/product";
+import { useEffect } from "react";
+import Error from "../../../../shared/components/Error";
+
+// لیبل‌های فارسی برای selectها
+const TYPE_LABEL: Record<NonNullable<ProductType["type"]>, string> = {
   tools: "ادوات کشاورزی",
-  land: "زمین زراعت",
-  crop: "محصول زراعی",
-  supplement: "مکمل/سم/کود",
+  grand: "زمین/باغ",
+  produce: "محصولات کشاورزی",
+  supple: "مکمل/کود/سم",
 };
-const STATUS_LABEL = { draft: "پیش‌نویس", published: "منتشر شده", archived: "آرشیو" } as const;
-
-type ProductBase = {
-  id: string;
-  title: string;
-  slug?: string;
-  category: CategoryKey;
-  price: number;
-  description?: string;
-  images: string[];
-  user: { id: string; name: string; avatar?: string };
-  location: { province?: string; city?: string; area?: string; address?: string; lat?: number; lng?: number };
-  date: string;
-  updatedAt?: string;
-  ratingAvg?: number;
-  ratingCount?: number;
-  views?: number;
-  tags?: string[];
-  status?: "draft" | "published" | "archived";
-  specs?: Record<string, string | boolean | number>;
+const GRAND_LABEL: Record<(typeof GRAND_TYPES)[number], string> = {
+  farm: "کشاورزی",
+  industery: "صنعتی",
+  company: "شرکتی",
+};
+const PRODUCT_KIND_LABEL: Record<(typeof FARM_PRODUCT_TYPES)[number], string> = {
+  water: "آبی",
+  garden: "باغی",
+  veg: "صیفی/سبزی",
+  flower: "گل/گیاه",
+};
+const GRADE_LABEL: Record<(typeof FARM_GRADES)[number], string> = {
+  low: "ضعیف",
+  middle: "متوسط",
+  high: "عالی",
 };
 
-type Props = {
-  initial?: Partial<ProductBase>;
-  onSubmit?: (data: ProductBase) => void;
+type FormValues = yup.InferType<typeof ProductValidationSchema>;
+const EMPTY: ProductType = {
+  id: null,
+  title: "",
+  price: "",
+  address: "",
+  image: null,
+  type: null,
+  additional_data: {},
+  info: '',
+  created_at: '',
+  grade: undefined,
 };
 
-function toTags(value: string): string[] {
-  return value.split(",").map((s) => s.trim()).filter(Boolean);
-}
+export default function ProductForm({ ACTION }: {ACTION:'ADD'|'EDIT'}) {
+  const params = useParams()
+  const { productId } = params
+  const {isPending, mutate} = useProduct(ACTION)
 
-export default function ProductEditor({ initial, onSubmit }: Props) {
-  const navigate = useNavigate();
+  const {
+    register,
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(ProductValidationSchema),
+  });
 
-  const [id] = useState(initial?.id ?? crypto.randomUUID());
-  const [title, setTitle] = useState(initial?.title ?? "");
-  const [slug, setSlug] = useState(initial?.slug ?? "");
-  const [category, setCategory] = useState<CategoryKey>(initial?.category ?? "tools");
-  const [price, setPrice] = useState<number | "">(initial?.price ?? "");
-  const [description, setDescription] = useState(initial?.description ?? "");
-  const [status, setStatus] = useState<ProductBase["status"]>(initial?.status ?? "draft");
-  const [tagsInput, setTagsInput] = useState((initial?.tags ?? []).join(", "));
-  // ❗️بدون تصویر پیش‌فرض؛ اگر نبود، Placeholder نشان می‌دهیم
-  const [images, setImages] = useState<string[]>(initial?.images ?? []);
-
-  const [province, setProvince] = useState(initial?.location?.province ?? "");
-  const [city, setCity] = useState(initial?.location?.city ?? "");
-  const [area, setArea] = useState(initial?.location?.area ?? "");
-  const [address, setAddress] = useState(initial?.location?.address ?? "");
-
-  const [specs, setSpecs] = useState<Record<string, string | boolean | number>>(initial?.specs ?? {});
-
-  const payload: ProductBase = useMemo(
-    () => ({
-      id,
-      title,
-      slug: slug || undefined,
-      category,
-      price: typeof price === "number" ? price : 0,
-      description: description || undefined,
-      images,
-      user: initial?.user ?? { id: "me-1", name: "کاربر" },
-      location: { province, city, area, address },
-      date: initial?.date ?? new Date().toISOString(),
-      updatedAt: initial?.updatedAt,
-      tags: toTags(tagsInput),
-      status,
-      specs,
+  const {
+     data: product,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey:['productId'],
+    queryFn:()=> getProductApi(productId),
+    enabled: ACTION==='EDIT' && !!productId,
+    staleTime:36000,
+    select: (p: ProductType): FormValues => ({
+      id: p.id,
+      title: p.title ?? "",
+      price: p.price ?? "",
+      address: p.address ?? "",
+      image: p.image ?? null,
+      type: p.type ?? 'tools',
+      additional_data: p.additional_data ?? undefined,
+      info: p.info ?? null,
+      created_at: p.created_at,
+      grade: p.grade,
     }),
-    [id, title, slug, category, price, description, images, province, city, area, address, tagsInput, status, specs, initial?.user, initial?.date, initial?.updatedAt]
-  );
+  })
 
-  const handleImagePick = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    setImages((prev) => [url, ...prev.slice(1)]);
+  useEffect(() => {
+    if (ACTION==='EDIT' && product) reset(product);
+    if(ACTION==='ADD') reset(EMPTY as FormValues)
+  }, [product, reset]);
+
+  const selectedType = watch("type");
+  const image = watch("image");
+
+  const onImagePick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const url = URL.createObjectURL(f);
+    setValue("image", url, { shouldDirty: true });
   };
 
-  const submit = () => {
-    if (title.trim().length < 3) return alert("عنوان باید حداقل ۳ کاراکتر باشد.");
-    if (!price || Number(price) <= 0) return alert("قیمت معتبر وارد کنید.");
-    onSubmit?.(payload);
-    console.log("SUBMIT PRODUCT:", payload);
+  const submit = (values: FormValues) => {
+    mutate(values as ProductType)
   };
 
-  const SpecsFields = () => {
-    switch (category) {
+   if (ACTION=='EDIT' && isLoading) {
+    return <div>در حال بارگذاری…</div>; // یا Skeleton
+  }
+  if (error) {
+    return <Error />;
+  }
+
+  const AdditionalFields = () => {
+    switch (selectedType) {
       case "tools":
         return (
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label="وزن (کیلوگرم)" type="number"
-                value={specs.weightKg ?? ""} onChange={(e) => setSpecs({ ...specs, weightKg: +e.target.value || "" })}/>
+              <TextField
+                sx={LabelPosition({right:25,rightActive:30})}
+                inputProps={{ dir: "rtl" }}
+                fullWidth label="وزن (کیلوگرم)" type="number"
+                {...register("additional_data.weight")}
+              />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label="سال تولید" type="number"
-                value={specs.year ?? ""} onChange={(e) => setSpecs({ ...specs, year: +e.target.value || "" })}/>
+              <TextField
+                sx={LabelPosition({right:25,rightActive:30})}
+                inputProps={{ dir: "rtl" }}
+                fullWidth label="سال تولید" type="number"
+                {...register("additional_data.year_of_production")}
+              />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <FormControlLabel control={
-                <Checkbox checked={!!specs.isUsed} onChange={(e) => setSpecs({ ...specs, isUsed: e.target.checked })}/>
-              } label="دست‌دوم است؟" />
+              <Controller
+                control={control}
+                name="additional_data.is_new"
+                render={({ field }) => (
+                  <TextField
+                    sx={LabelPosition({right:25,rightActive:30})}
+                    inputProps={{ dir: "ltr" }}
+                    select fullWidth label="نو/دست‌دوم"
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.value === "true")}
+                  >
+                    <MenuItem value="">نامشخص</MenuItem>
+                    <MenuItem value="true">نو</MenuItem>
+                    <MenuItem value="false">دست‌دوم</MenuItem>
+                  </TextField>
+                )}
+              />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField fullWidth label="ابعاد" placeholder="مثال: 2.7×1.6×2.5 متر"
-                value={specs.size ?? ""} onChange={(e) => setSpecs({ ...specs, size: e.target.value })}/>
+              <TextField fullWidth label="ابعاد" sx={LabelPosition({right:25,rightActive:30})}
+                inputProps={{ dir: "rtl" }}
+                {...register("additional_data.size")}
+                placeholder="مثال: 2.7×1.6×2.5 متر"
+              />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField fullWidth label="رنگ" value={specs.color ?? ""}
-                onChange={(e) => setSpecs({ ...specs, color: e.target.value })}/>
+              <TextField fullWidth label="رنگ" sx={LabelPosition({right:25,rightActive:30})}
+                inputProps={{ dir: "rtl" }}
+                {...register("additional_data.color")}
+              />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label="مدل" value={specs.model ?? ""}
-                onChange={(e) => setSpecs({ ...specs, model: e.target.value })}/>
+              <TextField fullWidth label="مدل"
+                sx={LabelPosition({right:25,rightActive:30})}
+                inputProps={{ dir: "rtl" }}
+                {...register("additional_data.model")}
+              />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label="ساخت" value={specs.madeIn ?? ""}
-                onChange={(e) => setSpecs({ ...specs, madeIn: e.target.value })}/>
+              <TextField fullWidth label="سازنده" sx={LabelPosition({right:25,rightActive:30})}
+                inputProps={{ dir: "rtl" }}
+                {...register("additional_data.producer")}
+              />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label="ظرفیت کاری" placeholder="مثال: تا 8 هکتار/روز"
-                value={specs.capacity ?? ""} onChange={(e) => setSpecs({ ...specs, capacity: e.target.value })}/>
+              <TextField fullWidth label="ظرفیت کاری"
+                sx={LabelPosition({right:25,rightActive:30})}
+                inputProps={{ dir: "rtl" }}
+                {...register("additional_data.capacity")}
+                placeholder="مثال: تا 8 هکتار/روز"
+              />
             </Grid>
           </Grid>
         );
-      case "land":
+
+      case "grand":
         return (
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label="متراژ (مترمربع)" type="number"
-                value={specs.areaM2 ?? ""} onChange={(e) => setSpecs({ ...specs, areaM2: +e.target.value || "" })}/>
+              <TextField sx={LabelPosition({right:25,rightActive:30})}
+                inputProps={{ dir: "rtl" }}
+                fullWidth label="متراژ (متر مربع)" type="number"
+                {...register("additional_data.meter")}
+              />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label="نوع کاربری"
-                value={specs.usage ?? ""} onChange={(e) => setSpecs({ ...specs, usage: e.target.value })}/>
+              <Controller
+                control={control}
+                name="additional_data.grand_type"
+                render={({ field }) => (
+                  <TextField
+                    sx={LabelPosition({right:25,rightActive:30})}
+                    inputProps={{ dir: "rtl" }}
+                    select fullWidth label="نوع کاربری"
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.value || undefined)}
+                  >
+                    <MenuItem value="">—</MenuItem>
+                    {GRAND_TYPES.map((g) => (
+                      <MenuItem key={g} value={g}>{GRAND_LABEL[g]}</MenuItem>
+                    ))}
+                  </TextField>
+                )}
+              />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label="سال ساخت (در صورت وجود بنا)" type="number"
-                value={specs.builtYear ?? ""} onChange={(e) => setSpecs({ ...specs, builtYear: +e.target.value || "" })}/>
+              <TextField sx={LabelPosition({right:25,rightActive:30})}
+                inputProps={{ dir: "rtl" }}
+                fullWidth label="سال ساخت/تولید" type="number"
+                {...register("additional_data.year_of_production")}
+              />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField fullWidth label="قیمت هر مترمربع (تومان)" type="number"
-                value={specs.pricePerM2 ?? ""} onChange={(e) => setSpecs({ ...specs, pricePerM2: +e.target.value || "" })}/>
+              <TextField sx={LabelPosition({right:25,rightActive:30})}
+                inputProps={{ dir: "rtl" }}
+                fullWidth label="قیمت هر متر" type="number"
+                {...register("additional_data.price_of_meter")}
+                InputProps={{ startAdornment: <InputAdornment position="start">تومان</InputAdornment> }}
+              />
             </Grid>
           </Grid>
         );
-      case "crop":
+
+      case "produce":
         return (
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label="قیمت هر کیلو (تومان)" type="number"
-                value={specs.pricePerKg ?? ""} onChange={(e) => setSpecs({ ...specs, pricePerKg: +e.target.value || "" })}/>
+              <TextField sx={LabelPosition({right:25,rightActive:30})}
+                inputProps={{ dir: "rtl" }}
+                fullWidth label="قیمت هر کیلو" type="number"
+                {...register("additional_data.price_of_weight")}
+                InputProps={{ startAdornment: <InputAdornment position="start">تومان</InputAdornment> }}
+              />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label="جنس/نوع"
-                value={specs.material ?? ""} onChange={(e) => setSpecs({ ...specs, material: e.target.value })}/>
+              <Controller
+                control={control}
+                name="additional_data.type_product"
+                render={({ field }) => (
+                  <TextField sx={LabelPosition({right:25,rightActive:30})}
+                inputProps={{ dir: "rtl" }}
+                    select fullWidth label="نوع محصول"
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.value || undefined)}
+                  >
+                    <MenuItem value="">—</MenuItem>
+                    {FARM_PRODUCT_TYPES.map((t) => (
+                      <MenuItem key={t} value={t}>{PRODUCT_KIND_LABEL[t]}</MenuItem>
+                    ))}
+                  </TextField>
+                )}
+              />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label="درجه کیفی"
-                value={specs.grade ?? ""} onChange={(e) => setSpecs({ ...specs, grade: e.target.value })}/>
+              <Controller
+                control={control}
+                name="additional_data.grade"
+                render={({ field }) => (
+                  <TextField sx={LabelPosition({right:25,rightActive:30})}
+                    inputProps={{ dir: "rtl" }}
+                    select fullWidth label="درجه کیفی"
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.value || undefined)}
+                  >
+                    <MenuItem value="">—</MenuItem>
+                    {FARM_GRADES.map((g) => (
+                      <MenuItem key={g} value={g}>{GRADE_LABEL[g]}</MenuItem>
+                    ))}
+                  </TextField>
+                )}
+              />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label="تعداد/بسته‌ها" type="number"
-                value={specs.count ?? ""} onChange={(e) => setSpecs({ ...specs, count: +e.target.value || "" })}/>
+              <TextField sx={LabelPosition({right:25,rightActive:30})}
+                inputProps={{ dir: "rtl" }}
+                fullWidth label="تعداد/بسته" type="number"
+                {...register("additional_data.count")}
+              />
             </Grid>
           </Grid>
         );
-      case "supplement":
+
+      case "supple":
         return (
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label="نوع" placeholder="مثال: کود پتاس"
-                value={specs.type ?? ""} onChange={(e) => setSpecs({ ...specs, type: e.target.value })}/>
+              <TextField sx={LabelPosition({right:25,rightActive:30})}
+                inputProps={{ dir: "rtl" }}
+                fullWidth label="نوع مکمل/کود/سم"
+                {...register("additional_data.type_of_supple")}
+                placeholder="مثال: کود پتاس"
+              />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label="وزن بسته (کیلوگرم)" type="number"
-                value={specs.weightKg ?? ""} onChange={(e) => setSpecs({ ...specs, weightKg: +e.target.value || "" })}/>
+              <TextField sx={LabelPosition({right:25,rightActive:30})}
+                inputProps={{ dir: "rtl" }}
+                fullWidth label="وزن بسته (کیلوگرم)" type="number"
+                {...register("additional_data.weight")}
+              />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label="جنس/ترکیب" placeholder="مثال: K₂SO₄ 50%"
-                value={specs.material ?? ""} onChange={(e) => setSpecs({ ...specs, material: e.target.value })}/>
+              <TextField sx={LabelPosition({right:25,rightActive:30})}
+                inputProps={{ dir: "rtl" }}
+                fullWidth label="جنس/ترکیب"
+                {...register("additional_data.material")}
+                placeholder="مثال: K₂SO₄ 50%"
+              />
             </Grid>
           </Grid>
         );
+
       default:
         return null;
     }
   };
 
   return (
-    <Box sx={{ py: { xs: 2, md: 3 } }}>
-      <Card sx={{ borderRadius: 3, boxShadow: 4 }}>
-        <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-          <Stack direction="row" alignItems="center" sx={{ gap: 1, mb: 2 }}>
-            <CategoryOutlined />
-            <Typography variant="h6" fontWeight={900}>
-              {initial ? "ویرایش محصول" : "ایجاد محصول جدید"}
-            </Typography>
-          </Stack>
-
-          <Grid container spacing={2}>
-            {/* --- تصویر شاخص + آپلود --- */}
-            <Grid size={{ xs: 12, md: 3 }}>
-              <Stack spacing={1.25} alignItems="center">
-                <Box
-                  sx={{
-                    width: "100%",
-                    aspectRatio: "1 / 1",
-                    borderRadius: 2,
-                    overflow: "hidden",
-                    border: (t) => `1px solid ${t.palette.divider}`,
-                    position: "relative",
-                    display: "grid",
-                    placeItems: "center",
-                    bgcolor: "background.default",
-                    // اگر تصویر داریم، بک‌گراند را بگذار؛ وگرنه آیکون بزرگ
-                    ...(images[0]
-                      ? {
-                          backgroundImage: `url('${images[0]}')`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                        }
-                      : {}),
-                  }}
-                >
-                  {!images[0] && <ImageOutlined sx={{ fontSize: 96, opacity: 0.3 }} />}
-                </Box>
-
-                <Tooltip title="آپلود تصویر شاخص">
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    startIcon={<UploadFileOutlined />}
-                    component="label"
-                    sx={{ borderRadius: 2 }}
-                  >
-                    آپلود تصویر
-                    <input hidden accept="image/*" type="file" onChange={handleImagePick} />
-                  </Button>
-                </Tooltip>
-              </Stack>
-            </Grid>
-
-            {/* --- فیلدهای اصلی --- */}
-            <Grid size={{ xs: 12, md: 9 }}>
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 12, md: 8 }}>
-                  <TextField
-                    fullWidth
-                    label="عنوان محصول"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    inputProps={{ maxLength: 120 }}
-                    helperText={`${title.length}/120`}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <TextField
-                    fullWidth
-                    label="اسلاگ (اختیاری)"
-                    value={slug}
-                    onChange={(e) => setSlug(e.target.value)}
-                    placeholder="مثال: tractor-754"
-                  />
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <Select fullWidth value={category} onChange={(e) => setCategory(e.target.value as CategoryKey)} displayEmpty>
-                    {(Object.keys(CATEGORY_LABEL) as CategoryKey[]).map((k) => (
-                      <MenuItem key={k} value={k}>{CATEGORY_LABEL[k]}</MenuItem>
-                    ))}
-                  </Select>
-                  <Typography variant="caption" color="text.secondary">دسته‌بندی</Typography>
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <TextField
-                    fullWidth
-                    label="قیمت کل (تومان)"
-                    type="number"
-                    value={price}
-                    onChange={(e) => setPrice(Number(e.target.value) || "")}
-                    InputProps={{ startAdornment: <InputAdornment position="start">تومان</InputAdornment> }}
-                  />
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <Select fullWidth value={status ?? "draft"} onChange={(e) => setStatus(e.target.value)}>
-                    <MenuItem value="draft">{STATUS_LABEL.draft}</MenuItem>
-                    <MenuItem value="published">{STATUS_LABEL.published}</MenuItem>
-                    <MenuItem value="archived">{STATUS_LABEL.archived}</MenuItem>
-                  </Select>
-                  <Typography variant="caption" color="text.secondary">وضعیت انتشار</Typography>
-                </Grid>
-
-                <Grid size={{ xs: 12 }}>
-                  <TextField
-                    fullWidth multiline minRows={4} label="توضیحات تکمیلی"
-                    value={description} onChange={(e) => setDescription(e.target.value)}
-                    placeholder="مشخصات، شرایط معامله، توضیحات مهم…"
-                  />
-                </Grid>
-              </Grid>
-            </Grid>
-          </Grid>
-
-          <Divider sx={{ my: 2 }} />
-
-          <Typography variant="subtitle1" fontWeight={800} sx={{ mb: 1 }}>موقعیت/آدرس</Typography>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, md: 3 }}>
-              <TextField fullWidth label="استان" value={province} onChange={(e) => setProvince(e.target.value)} />
-            </Grid>
-            <Grid size={{ xs: 12, md: 3 }}>
-              <TextField fullWidth label="شهر" value={city} onChange={(e) => setCity(e.target.value)} />
-            </Grid>
-            <Grid size={{ xs: 12, md: 3 }}>
-              <TextField fullWidth label="منطقه" value={area} onChange={(e) => setArea(e.target.value)} />
-            </Grid>
-            <Grid size={{ xs: 12, md: 3 }}>
-              <TextField fullWidth label="آدرس دقیق" value={address} onChange={(e) => setAddress(e.target.value)} />
-            </Grid>
-          </Grid>
-
-          <Divider sx={{ my: 2 }} />
-
-          <Typography variant="subtitle1" fontWeight={800} sx={{ mb: 1 }}>برچسب‌ها (اختیاری)</Typography>
-          <TextField fullWidth placeholder="با , جدا کنید — مثل: تراکتور, رومانی, 754"
-            value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} />
-
-          <Divider sx={{ my: 2 }} />
-
-          <Typography variant="subtitle1" fontWeight={800} sx={{ mb: 1 }}>
-            مشخصات {CATEGORY_LABEL[category]}
+    <form onSubmit={handleSubmit(submit)}>
+      <Card sx={{ p: 2, borderRadius: 3, boxShadow: 4 }}>
+        <Stack direction="row" alignItems="center" sx={{ gap: 1, mb: 2 }}>
+          <CategoryOutlined />
+          <Typography variant="h6" fontWeight={900}>
+            {ACTION==='EDIT' ? "ویرایش محصول" : "ایجاد محصول جدید"}
           </Typography>
-          <SpecsFields />
+        </Stack>
 
-          <Stack direction="row" justifyContent="space-between" sx={{ mt: 3, gap: 1 }}>
-            <Button variant="outlined" startIcon={<ArrowBack />} onClick={() => navigate(-1)} sx={{ borderRadius: 2 }}>
-              بازگشت
-            </Button>
-            <Button variant="contained" startIcon={<SaveOutlined />} onClick={submit} sx={{ borderRadius: 2 }}>
-              {initial ? "ذخیره تغییرات" : "ثبت محصول"}
-            </Button>
-          </Stack>
-        </CardContent>
+        {/* تصویر محصول */}
+        <Stack direction="row" alignItems="center" sx={{ gap: 2, mb: 2 }}>
+          <Box sx={{ position: "relative", width: 120, height: 120 }}>
+            <Box sx={{
+              width: 120, height: 120, borderRadius: 2, overflow: "hidden",
+              border: (t) => `1px solid ${t.palette.divider}`, display: "grid", placeItems: "center",
+              bgcolor: "background.default",
+            }}>
+              {image ? (
+                <Avatar src={image ?? undefined} variant="rounded" sx={{ width: 120, height: 120 }} />
+              ) : (
+                <ImageOutlined sx={{ fontSize: 64, opacity: 0.35 }} />
+              )}
+            </Box>
+            <Tooltip title="تغییر تصویر" disableInteractive>
+              <IconButton
+                component="label"
+                size="small"
+                aria-label="انتخاب تصویر"
+                sx={{
+                  position: "absolute", bottom: -8, left: -8,
+                  bgcolor: "background.paper", boxShadow: 2, zIndex: 2,
+                  "&:hover": { bgcolor: "background.paper" },
+                }}
+              >
+                <CameraAltOutlined />
+                <input type="file" accept="image/*" hidden onChange={onImagePick} />
+              </IconButton>
+            </Tooltip>
+          </Box>
+          <Typography variant="body2" color="text.secondary">
+            روی آیکون دوربین کلیک کنید تا تصویر محصول را انتخاب کنید.
+          </Typography>
+        </Stack>
+
+        <Grid container spacing={2} sx={{mt:5}}>
+          <Grid size={{ xs: 12, md: 8 }}>
+            <TextField
+              fullWidth label="عنوان محصول"
+              error={!!errors.title}
+              {...register("title")}
+              placeholder="مثال: تراکتور 754 رومانی"
+              sx={LabelPosition({ right: 10, rightActive: 28 })}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Controller
+              control={control}
+              name="type"
+              disabled={ACTION==='EDIT'} 
+              render={({ field }) => (
+                <TextField
+                  select fullWidth label="نوع محصول (ساختاری)"
+                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange((e.target.value || undefined) as FormValues["type"])}
+                  error={!!errors.type}
+                  disabled={ACTION==='EDIT'} 
+                  sx={LabelPosition({ right: 10, rightActive: 28 })}
+                  InputLabelProps={{ shrink: true }}
+                >
+                  <MenuItem value="">— انتخاب کنید —</MenuItem>
+                  {PRODUCT_TYPES.map((t) => (
+                    <MenuItem key={t} value={t}>{TYPE_LABEL[t]}</MenuItem>
+                  ))}
+                </TextField>
+              )}
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 4 }}>
+            <TextField
+              fullWidth label="قیمت کل (تومان)" type="number"
+              error={!!errors.price}
+              {...register("price")}
+              sx={LabelPosition({ right: 10, rightActive: 28 })}
+              InputLabelProps={{ shrink: true }}
+              InputProps={{ startAdornment: <InputAdornment position="start">تومان</InputAdornment> }}
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 8 }}>
+            <TextField
+              fullWidth label="آدرس"
+              error={!!errors.address}
+              {...register("address")}
+              placeholder="مثال: بابل - خیابان ..."
+              sx={LabelPosition({ right: 10, rightActive: 28 })}
+              InputLabelProps={{ shrink: true }}
+              InputProps={{ startAdornment: (<InputAdornment position="start"><PlaceOutlined /></InputAdornment>) }}
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12 }}>
+            <TextField
+              fullWidth label="توضیحات"
+              multiline minRows={3}
+              {...register("info")}
+              placeholder="مشخصات، شرایط معامله، توضیحات مهم…"
+              sx={LabelPosition({ right: 10, rightActive: 28 })}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+        </Grid>
+
+        {selectedType && (
+          <>
+            <Typography variant="subtitle1" fontWeight={800} sx={{ mt: 3, mb: 2 }}>
+              مشخصات {TYPE_LABEL[selectedType]}
+            </Typography>
+            <AdditionalFields />
+          </>
+        )}
+
+        <Stack direction="row" justifyContent="flex-end" sx={{ mt: 3 }}>
+          <Button variant="contained" type="submit" sx={{ borderRadius: 2 }}>
+            {(isPending) ? (
+              <CircularProgress sx={{ color: "primary.contrastText" }} size="26px" thickness={5} />
+            ) : (
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <SaveOutlined />
+                <Typography sx={{ mr: 1 }}>{ACTION=='EDIT' ? 'ثبت تغییرات' : 'ثبت محصول'}</Typography>
+              </Box>
+            )}
+          </Button>
+        </Stack>
       </Card>
-    </Box>
+    </form>
   );
 }

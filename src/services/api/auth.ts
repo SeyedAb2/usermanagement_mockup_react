@@ -22,5 +22,9 @@ export const loginApi = async ({phone,password}:UserType):Promise<UserType> => {
     return found;
 }
 
+export const patchUserApi = async (user:UserType):Promise<UserType> => {
+    const response:AxiosResponse<UserType> = await api.patch<UserType>(`${baseApi}/users/${user.id}`,user)
+    return response.data;
+}
 
 

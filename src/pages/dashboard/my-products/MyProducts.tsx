@@ -6,6 +6,7 @@ import {
 } from "@mui/material";
 import { Link as RouterLink } from "react-router";
 import { Search, EditOutlined, DeleteOutline, AddCircleOutline, ChevronRight, ChevronLeft } from "@mui/icons-material";
+import { fmtDate } from "../../../shared/types/fmtDate";
 
 type Row = { id: number; title: string; image: string; date: string };
 const MOCK: Row[] = Array.from({ length: 47 }).map((_, i) => ({
@@ -14,8 +15,7 @@ const MOCK: Row[] = Array.from({ length: 47 }).map((_, i) => ({
   image: `https://picsum.photos/seed/table${i}/200/140`,
   date: new Date(Date.now() - i * 86400000).toISOString(),
 }));
-const fmtDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("fa-IR", { year: "numeric", month: "2-digit", day: "2-digit" });
+
 
 export default function MyProducts() {
   const [q, setQ] = useState("");
@@ -106,7 +106,7 @@ export default function MyProducts() {
                     <TableCell><Typography color="text.secondary">{fmtDate(r.date)}</Typography></TableCell>
                     <TableCell align="center">
                       <Stack direction="row" spacing={0.5} justifyContent="center">
-                        <IconButton size="small" color="primary" component={RouterLink} to={`/products/${r.id}/edit`} aria-label="ویرایش">
+                        <IconButton size="small" color="primary" component={RouterLink} to={`/my-products/${r.id}/edit`} aria-label="ویرایش">
                           <EditOutlined />
                         </IconButton>
                         <IconButton size="small" color="error" onClick={() => onDelete(r.id)} aria-label="حذف">
