@@ -1,77 +1,130 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Card, CardContent, IconButton, InputAdornment, Stack, TextField, Typography,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Avatar,
-  Grid, Select, MenuItem, FormControl, InputLabel, Box
+  Select, MenuItem, FormControl, InputLabel, Box,
+  Grid
 } from "@mui/material";
 import { Link as RouterLink } from "react-router";
-import { Search, EditOutlined, DeleteOutline, AddCircleOutline, ChevronRight, ChevronLeft } from "@mui/icons-material";
+import { Search, EditOutlined, DeleteOutline, AddCircleOutline, ChevronRight, ChevronLeft, ImageOutlined } from "@mui/icons-material";
+import { LabelPosition } from "../../../shared/utils/textFieldLabelStyleConfig";
+import { useQuery } from "@tanstack/react-query";
+import { getAllProductApi } from "../../../services/api/product";
+import Error from "../../../shared/components/Error";
+import { ProductType } from "../../../shared/types";
 import { fmtDate } from "../../../shared/types/fmtDate";
-
-type Row = { id: number; title: string; image: string; date: string };
-const MOCK: Row[] = Array.from({ length: 47 }).map((_, i) => ({
-  id: i + 1010,
-  title: ["تراکتور رومانی 65", "بذر گندم ممتاز", "زمین ۲ هکتار آبی", "کود پتاس 50%"][i % 4],
-  image: `https://picsum.photos/seed/table${i}/200/140`,
-  date: new Date(Date.now() - i * 86400000).toISOString(),
-}));
-
+import AlertDialogSlide from "../../../shared/components/AlertDialog";
+import useDelete from "../../../shared/hooks/useDelete";
 
 export default function MyProducts() {
+  const {
+    data: products = [],     
+    isLoading,
+    isError,
+    isSuccess,
+  } = useQuery<ProductType[]>({
+    queryKey: ["allProduct"],
+    queryFn: getAllProductApi,
+    staleTime: 60_000,
+  });
+
+  const {isPending, mutate} = useDelete()
+
   const [q, setQ] = useState("");
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const filtered = useMemo(() => MOCK.filter((r) => !q.trim() || r.title.includes(q.trim())), [q]);
+  const qNorm = q.trim().toLowerCase();
+
+  const filtered = useMemo(() => {
+    if (!isSuccess) return [];
+    return products.filter((r) => {
+      const title = (r.title ?? "").toLowerCase();
+      return !qNorm || title.includes(qNorm);
+    });
+  }, [isSuccess, products, qNorm]);
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
+
+  useEffect(() => {
+    setPage((p) => Math.min(Math.max(0, totalPages - 1), p));
+  }, [totalPages]);
+
   const paged = useMemo(
     () => filtered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
     [filtered, page, rowsPerPage]
   );
 
-  const onDelete = (id: number) => {
-    if (confirm("آیا از حذف این محصول مطمئن هستید؟")) console.log("delete", id);
+  const askDelete = (id: number | undefined | null) => {
+    if (!id) return;
+    setSelectedId(id);
+    setOpenDialog(true);
   };
+
+  const onDelete = () => {
+    if (!selectedId) return;
+    mutate(selectedId, {
+      onSuccess: () => {
+        setOpenDialog(false);
+        setSelectedId(null);
+      },
+    });
+  };
+
+  if (isLoading) return <div>در حال بارگذاری…</div>;
+  if (isError) return <Error />;
 
   return (
     <Card sx={{ borderRadius: 3, boxShadow: 4, width: "100%" }}>
       <CardContent sx={{ p: 2 }}>
-        {/* هدر: سرچ + افزودن */}
         <Grid container spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
-          <Grid size={{ xs: 12, md: 'auto' }}>
+          <Grid size={{ xs: 12, md: "auto" }}>
             <TextField
               fullWidth
+              sx={LabelPosition({ right: 15, rightActive: 30 })}
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ dir: "rtl" }}
               label="جستجوی محصول"
               value={q}
-              onChange={(e) => { setQ(e.target.value); setPage(0); }}
-              InputProps={{ startAdornment: (<InputAdornment position="start"><Search /></InputAdornment>) }}
+              onChange={(e) => {
+                setQ(e.target.value);
+                setPage(0);
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search />
+                  </InputAdornment>
+                ),
+              }}
             />
           </Grid>
           <Grid size={{ xs: 12, md: "auto" }}>
             <Button
               variant="contained"
-              startIcon={<AddCircleOutline />}
               component={RouterLink}
               to="/dashboard/my-products/create"
               sx={{ height: 56, borderRadius: 2, whiteSpace: "nowrap", width: { xs: "100%", md: "auto" } }}
             >
+              <AddCircleOutline sx={{ fontSize: 20, mx: 0.5 }} />
               افزودن محصول جدید
             </Button>
           </Grid>
         </Grid>
 
-        {/* ظرف اسکرول داخلی */}
         <Box
           sx={{
             width: "100%",
             maxWidth: "100%",
-            overflow: "auto",                 // اسکرول افقی + عمودی فقط داخل باکس
-            maxHeight: { xs: "70dvh", md: "unset" }, // ارتفاع کنترل‌شده در موبایل
+            overflow: "auto",
+            maxHeight: { xs: "70dvh", md: "unset" },
             borderRadius: 2,
             border: (t) => `1px solid ${t.palette.divider}`,
           }}
         >
-          <TableContainer sx={{ minWidth: 720 /* برای اسکرول افقی موبایل */ }}>
+          <TableContainer sx={{ minWidth: 720 }}>
             <Table
               aria-label="my products"
               sx={{
@@ -79,10 +132,12 @@ export default function MyProducts() {
                   bgcolor: "background.default",
                   fontWeight: 800,
                   whiteSpace: "nowrap",
-                  position: "sticky", top: 0, zIndex: 1, // هدر ثابت هنگام اسکرول داخلی
+                  position: "sticky",
+                  top: 0,
+                  zIndex: 1,
                 },
                 "& tbody tr:not(:last-of-type) td": {
-                  borderBottom: (t) => `1px solid ${t.palette.divider}`, // مرز بین ردیف‌ها
+                  borderBottom: (t) => `1px solid ${t.palette.divider}`,
                 },
               }}
             >
@@ -98,18 +153,47 @@ export default function MyProducts() {
               <TableBody>
                 {paged.map((r) => (
                   <TableRow key={r.id} hover>
-                    <TableCell align="center"><Typography fontWeight={700}>{r.id}</Typography></TableCell>
-                    <TableCell>
-                      <Avatar variant="rounded" src={r.image} alt={r.title} sx={{ width: 48, height: 48, borderRadius: 1.5 }} />
+                    <TableCell align="center">
+                      <Typography fontWeight={700}>{r.id}</Typography>
                     </TableCell>
-                    <TableCell><Typography fontWeight={700}>{r.title}</Typography></TableCell>
-                    <TableCell><Typography color="text.secondary">{fmtDate(r.date)}</Typography></TableCell>
+                    <TableCell>
+                      {r.image ? (
+                          <Avatar
+                            variant="rounded"
+                            src={r.image ?? undefined}
+                            alt={r.title ?? ""}
+                            sx={{ width: 48, height: 48, borderRadius: 1.5 }}
+                          />
+                        ) : (
+                          <ImageOutlined sx={{ fontSize: 48, opacity: 0.35 }} />
+                        )}
+                      
+                    </TableCell>
+                    <TableCell>
+                      <Typography fontWeight={700}>{r.title ?? "—"}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography color="text.secondary">
+                        {r.created_at ? fmtDate(r.created_at) : "—"}
+                      </Typography>
+                    </TableCell>
                     <TableCell align="center">
                       <Stack direction="row" spacing={0.5} justifyContent="center">
-                        <IconButton size="small" color="primary" component={RouterLink} to={`/my-products/${r.id}/edit`} aria-label="ویرایش">
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          component={RouterLink}
+                          to={`/my-products/${r.id}/edit`}
+                          aria-label="ویرایش"
+                        >
                           <EditOutlined />
                         </IconButton>
-                        <IconButton size="small" color="error" onClick={() => onDelete(r.id)} aria-label="حذف">
+                        
+                        <IconButton onClick={()=>{askDelete(r.id)}}
+                          size="small"
+                          color="error"
+                          aria-label="حذف"
+                        >
                           <DeleteOutline />
                         </IconButton>
                       </Stack>
@@ -129,31 +213,39 @@ export default function MyProducts() {
             </Table>
           </TableContainer>
 
-          {/* پیجینیشن سفارشی داخل همان باکس اسکرولی */}
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            sx={{ p: 1.5 }}
-          >
+          {/* پیجینیشن سفارشی */}
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ p: 1.5 }}>
             <Stack direction="row" alignItems="center" sx={{ gap: 1 }}>
               <InputLabel id="rpp-label">سطر در صفحه</InputLabel>
               <FormControl size="small">
                 <Select
                   labelId="rpp-label"
                   value={rowsPerPage}
-                  onChange={(e) => { setRowsPerPage(Number(e.target.value)); setPage(0); }}
+                  onChange={(e) => {
+                    setRowsPerPage(Number(e.target.value));
+                    setPage(0);
+                  }}
                 >
-                  {[5, 10, 25].map((n) => <MenuItem key={n} value={n}>{n}</MenuItem>)}
+                  {[5, 10, 25].map((n) => (
+                    <MenuItem key={n} value={n}>
+                      {n}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Stack>
             <Stack direction="row" alignItems="center" sx={{ gap: 1 }}>
-              <IconButton aria-label="قبل" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0}>
+              <IconButton
+                aria-label="قبل"
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
+              >
                 <ChevronRight />
               </IconButton>
               <Box sx={{ px: 1.5 }}>
-                <Typography fontWeight={800}>صفحه {page + 1} از {totalPages}</Typography>
+                <Typography fontWeight={800}>
+                  صفحه {page + 1} از {totalPages}
+                </Typography>
               </Box>
               <IconButton
                 aria-label="بعد"
@@ -164,6 +256,7 @@ export default function MyProducts() {
               </IconButton>
             </Stack>
           </Stack>
+          <AlertDialogSlide open={openDialog} isPending={isPending} agreeDelete={()=>{onDelete()}} handleClose={()=>{setOpenDialog(false)}}/>
         </Box>
       </CardContent>
     </Card>

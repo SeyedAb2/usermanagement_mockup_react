@@ -13,7 +13,11 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import type { ProductType } from "../../../../shared/types";
 import { LabelPosition } from "../../../../shared/utils/textFieldLabelStyleConfig";
 import {
-  PRODUCT_TYPES, GRAND_TYPES, FARM_PRODUCT_TYPES, FARM_GRADES
+  PRODUCT_TYPES, GRAND_TYPES, FARM_PRODUCT_TYPES, FARM_GRADES,
+  TYPE_LABEL,
+  GRAND_LABEL,
+  PRODUCT_KIND_LABEL,
+  GRADE_LABEL
 } from "../../../../shared/utils/product-const";
 import { ProductValidationSchema } from "../../../../shared/validations/productSchema";
 import useProduct from "../../../../shared/hooks/useProduct";
@@ -23,29 +27,6 @@ import { getProductApi } from "../../../../services/api/product";
 import { useEffect } from "react";
 import Error from "../../../../shared/components/Error";
 
-// لیبل‌های فارسی برای selectها
-const TYPE_LABEL: Record<NonNullable<ProductType["type"]>, string> = {
-  tools: "ادوات کشاورزی",
-  grand: "زمین/باغ",
-  produce: "محصولات کشاورزی",
-  supple: "مکمل/کود/سم",
-};
-const GRAND_LABEL: Record<(typeof GRAND_TYPES)[number], string> = {
-  farm: "کشاورزی",
-  industery: "صنعتی",
-  company: "شرکتی",
-};
-const PRODUCT_KIND_LABEL: Record<(typeof FARM_PRODUCT_TYPES)[number], string> = {
-  water: "آبی",
-  garden: "باغی",
-  veg: "صیفی/سبزی",
-  flower: "گل/گیاه",
-};
-const GRADE_LABEL: Record<(typeof FARM_GRADES)[number], string> = {
-  low: "ضعیف",
-  middle: "متوسط",
-  high: "عالی",
-};
 
 type FormValues = yup.InferType<typeof ProductValidationSchema>;
 const EMPTY: ProductType = {
@@ -355,7 +336,6 @@ export default function ProductForm({ ACTION }: {ACTION:'ADD'|'EDIT'}) {
           </Typography>
         </Stack>
 
-        {/* تصویر محصول */}
         <Stack direction="row" alignItems="center" sx={{ gap: 2, mb: 2 }}>
           <Box sx={{ position: "relative", width: 120, height: 120 }}>
             <Box sx={{

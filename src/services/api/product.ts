@@ -26,4 +26,9 @@ export const patchProductApi = async (product:ProductType):Promise<ProductType> 
     return response.data;
 }
 
+export const deleteProductApi = async (id:number|string|null|undefined) => {
+    const response:AxiosResponse = await api.delete(`${baseApi}/products/${id}`)
+    return response.data;
+}
+
 

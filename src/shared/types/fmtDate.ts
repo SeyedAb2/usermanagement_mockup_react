@@ -1,2 +1,2 @@
-export const fmtDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("fa-IR", { year: "numeric", month: "2-digit", day: "2-digit" });
+export const fmtDate = (iso?: string|Date|null|undefined) =>
+  iso ? new Date(iso).toLocaleDateString("fa-IR", { year: "numeric", month: "2-digit", day: "2-digit" }) : iso

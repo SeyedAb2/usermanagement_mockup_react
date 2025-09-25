@@ -37,7 +37,7 @@ const router = createBrowserRouter([
         path: "/dashboard",
         element: <Dashboard />,
         children: [
-          { index: true, element: <Info /> },        // اگر /dashboard خالی بود
+          { index: true, element: <Info /> },    
           { path: "info", element: <Info /> },
           { path: "my-products", element: <MyProducts /> },
           { path: "my-products/create", element: <ProductForm ACTION="ADD"/> },
