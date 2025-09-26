@@ -26,7 +26,6 @@ export default function MyProducts() {
   } = useQuery<ProductType[]>({
     queryKey: ["allProduct"],
     queryFn: getAllProductApi,
-    staleTime: 60_000,
   });
 
   const {isPending, mutate} = useDelete()

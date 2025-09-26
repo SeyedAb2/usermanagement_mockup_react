@@ -94,9 +94,15 @@ export default function ProductForm({ ACTION }: {ACTION:'ADD'|'EDIT'}) {
   const onImagePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    const url = URL.createObjectURL(f);
-    setValue("image", url, { shouldDirty: true });
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      setValue("image", base64, { shouldDirty: true });
+    };
+    reader.readAsDataURL(f);
   };
+
 
   const submit = (values: FormValues) => {
     mutate(values as ProductType)

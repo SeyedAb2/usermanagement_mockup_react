@@ -41,13 +41,19 @@ export default function Info() {
     }
   })
   const { isPending, mutate } = usePatchUser()
+
   const onLogoPick = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    // const url = URL.createObjectURL(f);
-    // setValue('logo',url, { shouldDirty: true});
-    setValue('logo',null, { shouldDirty: true});
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      setValue("logo", base64, { shouldDirty: true });
+    };
+    reader.readAsDataURL(file);
   };
+
 
   const onSubmit = (data:FormValues)=>{
     mutate({...user,...data} as UserType)
