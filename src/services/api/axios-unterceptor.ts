@@ -1,6 +1,6 @@
 import axios from "axios";
 import { BASE_API_URL } from "../../environment/environment";
-import { sleep } from "../../shared/utils/sleepDlay";
+// import { sleep } from "../../shared/utils/sleepDlay";
 
 const api = axios.create({
   baseURL: BASE_API_URL,
@@ -9,7 +9,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   async (config) => {
-    await sleep(1000);
+    // await sleep(1000);
     return config;
   },
   (error) => {
