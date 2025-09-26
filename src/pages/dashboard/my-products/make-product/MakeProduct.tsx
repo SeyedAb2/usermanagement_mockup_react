@@ -26,6 +26,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getProductApi } from "../../../../services/api/product";
 import { useEffect } from "react";
 import Error from "../../../../shared/components/Error";
+import ProductFormSkeleton from "../../../../shared/components/skeletons/MakeProductsSkeleton";
 
 
 type FormValues = yup.InferType<typeof ProductValidationSchema>;
@@ -102,7 +103,7 @@ export default function ProductForm({ ACTION }: {ACTION:'ADD'|'EDIT'}) {
   };
 
    if (ACTION=='EDIT' && isLoading) {
-    return <div>در حال بارگذاری…</div>; // یا Skeleton
+    return <ProductFormSkeleton />
   }
   if (error) {
     return <Error />;

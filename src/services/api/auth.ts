@@ -22,6 +22,16 @@ export const loginApi = async ({phone,password}:UserType):Promise<UserType> => {
     return found;
 }
 
+export const getAllusersApi = async ():Promise<UserType[]>=>{
+    const response:AxiosResponse<UserType[]> = await api.get<UserType[]>(`${baseApi}/users`);
+    return response.data
+}
+
+export const getUserApi = async (id:number|string):Promise<UserType>=>{
+    const response:AxiosResponse<UserType> = await api.get<UserType>(`${baseApi}/users/${id}`);
+    return response.data
+}
+
 export const patchUserApi = async (user:UserType):Promise<UserType> => {
     const response:AxiosResponse<UserType> = await api.patch<UserType>(`${baseApi}/users/${user.id}`,user)
     return response.data;

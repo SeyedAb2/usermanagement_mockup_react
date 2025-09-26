@@ -5,7 +5,9 @@ import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 
 import { ListPageIconType } from "../types";
-import { AccountCircleOutlined, KeyOutlined, ShoppingBasketOutlined } from '@mui/icons-material';
+import { AccountCircleOutlined, Agriculture, Handyman, KeyOutlined, ShoppingBasketOutlined, Storefront } from '@mui/icons-material';
+import { JSX } from 'react';
+import { UserKind } from './userTypeList';
 
 export const menuItem:ListPageIconType[] = [
     {name:'محصولات',path:'/products',icon:  <ProductionQuantityLimitsOutlinedIcon sx={{fontSize:20}}/>},
@@ -24,3 +26,8 @@ export const dashboardMenuItem:ListPageIconType[] = [
     { key: "reset-pass", name: "تغییر رمز عبور", icon: <KeyOutlined />, path: "/dashboard/reset-pass" },
 ]
 
+export const TYPE_ICON: Record<UserKind, JSX.Element> = {
+  farmer: <Agriculture fontSize="small" />,
+  seller: <Storefront fontSize="small" />,
+  service: <Handyman fontSize="small" />,
+};

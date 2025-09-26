@@ -25,7 +25,6 @@ export default function NotFound() {
         >
           <CardContent sx={{ p: { xs: 4, md: 6 } }}>
             <Stack alignItems="center" spacing={2}>
-              {/* آیکون / لوگو */}
               <Box
                 sx={{
                   width: 96,
@@ -43,7 +42,6 @@ export default function NotFound() {
                 <SearchOffOutlined sx={{ fontSize: 52, opacity: 0.8 }} />
               </Box>
 
-              {/* تیتر و توضیح */}
               <Typography variant="h5" fontWeight={900}>
                 صفحه‌ای یافت نشد
               </Typography>
@@ -51,13 +49,12 @@ export default function NotFound() {
                 آدرس وارد شده نادرست است یا صفحه حذف شده است.
               </Typography>
 
-              {/* دکمه بازگشت */}
               <Button
                 variant="contained"
                 size="large"
                 component={RouterLink}
                 to="/"
-                sx={{ borderRadius: 2, mt: 1 }}
+                sx={{ borderRadius: 2, mt: 1, mx:1 }}
               >
                 بازگشت به صفحهٔ اصلی
               </Button>

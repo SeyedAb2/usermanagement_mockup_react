@@ -12,7 +12,12 @@ export default function useProduct(ACTION:'ADD'|'EDIT'){
     const { notify } = useToastify();
     return useMutation({
         mutationKey:['product'],
-        mutationFn:(data:ProductType)=>ACTION==='ADD' ? postProductApi({...data,user:getUser(),created_at:new Date(Date.now()).toISOString()}) : patchProductApi({...data,user:getUser()}),
+        mutationFn:(data:ProductType)=>ACTION==='ADD' ? postProductApi({
+            ...data,
+            user:getUser(),
+            created_at:new Date(Date.now()).toISOString(),
+            grade:Math.floor(Math.random() * (5 - 1 + 1)) + 1
+        }) : patchProductApi({...data,user:getUser()}),
         onSuccess:()=>{
             scrollToTop();
             notify({type:ACTION==='ADD'?'success':'info',message:ACTION==='ADD' ? 'محصول با موفقیت اضافه شد' : 'محصول با موفقیت ویرایش شد' })

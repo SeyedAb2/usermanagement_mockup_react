@@ -74,7 +74,7 @@ export default function Error({
                     size="large"
                     onClick={onRetry}
                     disabled={!onRetry}
-                    sx={{ borderRadius: 2 }}
+                    sx={{ borderRadius: 2,mx:1 }}
                   >
                     تلاش مجدد
                   </Button>

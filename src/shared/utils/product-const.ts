@@ -1,4 +1,5 @@
 import { ProductType } from "../types";
+import { CategoryKey } from "../types/product.type";
 
 export const PRODUCT_TYPES = ["tools", "grand", "produce", "supple"] as const;
 export const GRAND_TYPES = ["farm", "industery", "company"] as const;
@@ -12,6 +13,10 @@ export const TYPE_LABEL: Record<NonNullable<ProductType["type"]>, string> = {
   produce: "محصولات کشاورزی",
   supple: "مکمل/کود/سم",
 };
+
+export const CATEGORY_COLOR: Record<CategoryKey, "primary" | "success" | "warning" | "info"> =
+  { tools: "info", grand: "warning", produce: "success", supple: "primary" };
+
 export const GRAND_LABEL: Record<(typeof GRAND_TYPES)[number], string> = {
   farm: "کشاورزی",
   industery: "صنعتی",

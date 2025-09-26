@@ -163,6 +163,7 @@ export default function SignUp() {
                 placeholder="************"
                 variant="outlined"
                 margin="normal"
+                sx={LabelPosition({right:15,rightActive:30})}
                 InputLabelProps={{ shrink: true }}
                 inputProps={{ dir: "ltr" }}
                 InputProps={{

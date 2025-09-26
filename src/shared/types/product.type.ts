@@ -27,6 +27,8 @@ export interface SupplementFieldType {
     weight?:number,
     material?:string,
 }
+
+export type CategoryKey = "tools" | "grand" | "produce" | "supple";
 export interface ProductType {
     title?:string,
     price?:string,
@@ -40,3 +42,52 @@ export interface ProductType {
     user?:UserType|null|undefined,
     created_at?:Date|string,
 }
+
+export type ProductBase = {
+  id: string;
+  title: string;
+  image: string;
+  user: { id: string; name: string; avatar: string };
+  price: number;
+  category: CategoryKey;
+  date: string;     // ISO
+  location: string; // شهر/منطقه
+  rating: number;
+  views: number;
+  description: string;
+};
+
+export type SpecsTools = {
+  weightKg?: number;
+  year?: number;
+  isUsed?: boolean;
+  size?: string;
+  color?: string;
+  model?: string;
+  madeIn?: string;
+  capacity?: string;
+};
+export type SpecsLand = {
+  areaM2?: number;
+  usage?: string;
+  builtYear?: number;
+  pricePerM2?: number;
+};
+export type SpecsCrop = {
+  pricePerKg?: number;
+  material?: string;
+  grade?: string;
+  count?: number;
+};
+export type SpecsSupplement = {
+  type?: string;
+  weightKg?: number;
+  material?: string;
+};
+
+export type Product =
+  | (ProductBase & { category: "tools"; specs: SpecsTools })
+  | (ProductBase & { category: "land"; specs: SpecsLand })
+  | (ProductBase & { category: "crop"; specs: SpecsCrop })
+  | (ProductBase & { category: "supplement"; specs: SpecsSupplement });
+

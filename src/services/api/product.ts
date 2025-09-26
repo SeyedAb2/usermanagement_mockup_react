@@ -31,4 +31,26 @@ export const deleteProductApi = async (id:number|string|null|undefined) => {
     return response.data;
 }
 
+export const getUserProductsApi = async (
+  userId: number | string
+): Promise<ProductType[]> => {
+  const response: AxiosResponse<ProductType[]> = await api.get<ProductType[]>(
+    `${baseApi}/products`
+  );
+
+  const data = response.data ?? [];
+  const uidNum = Number(userId);
+  const hasNumericId = !Number.isNaN(uidNum);
+
+  const filtered = data.filter((p: ProductType) => {
+    const nestedId = p?.user?.id;
+
+    if (hasNumericId) {
+      return nestedId === uidNum;
+    }
+    return String(nestedId) === String(userId);
+  });
+
+  return filtered;
+};
 

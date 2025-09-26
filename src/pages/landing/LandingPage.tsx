@@ -2,15 +2,16 @@ import { useMemo, useState } from "react";
 import {
   Box, Button, Card, CardActionArea, CardContent, CardMedia, Chip, Container,
   Divider, Grid, IconButton, Stack, Tab, Tabs, Typography, Rating
-} from "@mui/material"; // Grid v2 – از size={{}} استفاده می‌کنیم
+} from "@mui/material";
 import {
   Agriculture, CategoryOutlined, SecurityOutlined, LocalShippingOutlined,
   MonetizationOnOutlined, KeyboardArrowLeft
 } from "@mui/icons-material";
 import { Link as RouterLink } from "react-router";
 import StatItem from "../../shared/components/StateItem";
+import { useAuthStore } from "../../store/auth.store";
+import { formatPrice } from "../../shared/utils/formatPrice";
 
-/* ---------------- Mock & helpers ---------------- */
 const CATEGORIES = [
   {
     key: "tools",
@@ -46,17 +47,13 @@ const PRODUCTS = Array.from({ length: 8 }).map((_, i) => ({
   rating: 3.5 + ((i % 3) * 0.5),
 }));
 
-function formatPrice(v: number) {
-  return `${v.toLocaleString("fa-IR")} تومان`;
-}
 
-/* ---------------- Landing Page ---------------- */
+
 export default function LandingPage() {
   const [tab, setTab] = useState(0);
   const featured = useMemo(() => PRODUCTS.slice(0, 4), []); // فقط یک ردیف
   const newest = useMemo(() => [...PRODUCTS].reverse().slice(0, 4), []);
-
-  /* ---------------- Sections ---------------- */
+  const { isLogined } = useAuthStore()
 
   const Hero = (
     <Box sx={{ py: { xs: 5, md: 8 } }}>
@@ -90,19 +87,19 @@ export default function LandingPage() {
                 variant="contained"
                 size="large"
                 component={RouterLink}
-                to="/login"
+                to={isLogined() ? '/products' : '/login'}
                 sx={{ borderRadius: 2, minWidth: 140 }}
               >
-                ورود
+                {isLogined() ? 'محصولات' : 'ورود'}
               </Button>
               <Button
                 variant="outlined"
                 size="large"
                 component={RouterLink}
-                to="/signup"
+                to={isLogined() ? '/users' : '/signup'}
                 sx={{ borderRadius: 2, minWidth: 140 }}
               >
-                ثبت‌نام
+                {isLogined() ? 'کاربران' : 'ثبت نام'}
               </Button>
             </Stack>
           </Stack>
@@ -284,27 +281,7 @@ export default function LandingPage() {
             <Divider sx={{ my: 2 }} />
           </Grid>
 
-          {/* لوگو/شریک‌ها – اسکرول افقی مخفی‌اسکرول */}
-          <Grid size={{ xs: 12 }}>
-            <Box
-              sx={{
-                display: "grid",
-                gridAutoFlow: "column",
-                gridAutoColumns: "minmax(120px, 1fr)",
-                gap: 2,
-                overflowX: "auto",
-                pb: 1,
-                scrollbarWidth: "none",
-                "&::-webkit-scrollbar": { display: "none" },
-              }}
-            >
-              {["🚜", "🌾", "🧪", "🏭", "🛒"].map((emo, i) => (
-                <Card key={i} sx={{ p: 2, borderRadius: 2, textAlign: "center" }}>
-                  <Typography fontSize={28}>{emo}</Typography>
-                </Card>
-              ))}
-            </Box>
-          </Grid>
+          
         </Grid>
       </Card>
     </Box>

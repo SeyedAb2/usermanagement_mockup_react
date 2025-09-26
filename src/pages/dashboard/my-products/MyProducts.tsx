@@ -15,6 +15,7 @@ import { ProductType } from "../../../shared/types";
 import { fmtDate } from "../../../shared/types/fmtDate";
 import AlertDialogSlide from "../../../shared/components/AlertDialog";
 import useDelete from "../../../shared/hooks/useDelete";
+import MyProductsSkeleton from "../../../shared/components/skeletons/MyProductsSkeleton";
 
 export default function MyProducts() {
   const {
@@ -73,7 +74,7 @@ export default function MyProducts() {
     });
   };
 
-  if (isLoading) return <div>در حال بارگذاری…</div>;
+  if (isLoading) return <MyProductsSkeleton />;
   if (isError) return <Error />;
 
   return (
@@ -183,7 +184,7 @@ export default function MyProducts() {
                           size="small"
                           color="primary"
                           component={RouterLink}
-                          to={`/my-products/${r.id}/edit`}
+                          to={`/dashboard/my-products/${r.id}/edit`}
                           aria-label="ویرایش"
                         >
                           <EditOutlined />
