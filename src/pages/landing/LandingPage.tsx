@@ -11,67 +11,75 @@ import { Link as RouterLink } from "react-router";
 import StatItem from "../../shared/components/StateItem";
 import { useAuthStore } from "../../store/auth.store";
 import { formatPrice } from "../../shared/utils/formatPrice";
+import landingImg from "../../assets/images/landing.jpg";
+import toolsImg from "../../assets/images/tools.webp";
+import landImg from "../../assets/images/grand.jfif";
+import cropImg from "../../assets/images/product.jpg";
+import suppleImg from "../../assets/images/supple.webp";
+import land1 from '../../assets/images/land1.jpg'
+import land2 from '../../assets/images/land2.jpg'
+import land3 from '../../assets/images/land3.jpg'
+import land4 from '../../assets/images/land4.jpg'
+
+const landArrImg = [land1,land2,land3,land4]
 
 const CATEGORIES = [
   {
     key: "tools",
     title: "ادوات کشاورزی",
     icon: <Agriculture />,
-    img: "https://images.unsplash.com/photo-1617350335633-8f0bc3cfcf78?w=1200&q=80&auto=format&fit=crop" // تراکتور
+    img: toolsImg,
   },
   {
     key: "land",
     title: "زمین زراعت",
     icon: <CategoryOutlined />,
-    img: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=1200&q=80&auto=format&fit=crop"
+    img: landImg,
   },
   {
     key: "crop",
     title: "محصول زراعی",
     icon: <CategoryOutlined />,
-    img: "https://images.unsplash.com/photo-1495195134817-aeb325a55b65?w=1200&q=80&auto=format&fit=crop"
+    img: cropImg,
   },
   {
     key: "supplement",
     title: "مکمل/سم/کود",
     icon: <CategoryOutlined />,
-    img: "https://images.unsplash.com/photo-1541976076758-347942db1970?w=1200&q=80&auto=format&fit=crop"
+    img: suppleImg,
   },
 ];
 
-const PRODUCTS = Array.from({ length: 8 }).map((_, i) => ({
+const PRODUCTS = Array.from({ length: 4 }).map((_, i) => ({
   id: i + 1,
-  title: ["تراکتور رومانی 65", "کود پتاس 50%", "بذر گندم ممتاز", "زمین ۲ هکتار آبی"][i % 4],
+  title: [ "زمین ۲ هکتار آبی","بذر گندم ممتاز", "کود پتاس 50%","تراکتور رومانی 65"][i % 4],
   price: 4_000_000 + i * 550_000,
-  img: `https://picsum.photos/seed/landing${i}/640/420`,
-  rating: 3.5 + ((i % 3) * 0.5),
+  img: landArrImg[i],
+  rating: 3 + ((i % 3) * 1),
 }));
-
 
 
 export default function LandingPage() {
   const [tab, setTab] = useState(0);
-  const featured = useMemo(() => PRODUCTS.slice(0, 4), []); // فقط یک ردیف
+  const featured = useMemo(() => PRODUCTS.slice(0, 4), []);
   const newest = useMemo(() => [...PRODUCTS].reverse().slice(0, 4), []);
   const { isLogined } = useAuthStore()
 
   const Hero = (
     <Box sx={{ py: { xs: 5, md: 8 } }}>
       <Grid container spacing={2} alignItems="center">
-        {/* تصویر طبیعت */}
         <Grid size={{ xs: 12, md: 6 }}>
           <Box
             sx={{
               height: { xs: 260, md: 420 },
               borderRadius: 3,
               background:
-                "url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=1600&q=80&auto=format&fit=crop') center/cover",
+                `url(${landingImg}) center/cover no-repeat`,
               boxShadow: 4,
             }}
           />
         </Grid>
 
-        {/* متن + دکمه‌ها */}
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack spacing={2} sx={{ textAlign: { xs: "center", md: "right" } }}>
             <Typography variant="h3" fontWeight={900}>
@@ -81,7 +89,6 @@ export default function LandingPage() {
               خرید و فروش مستقیم ادوات، زمین، محصولات زراعی و نهاده‌ها — سریع، امن و سراسری.
             </Typography>
 
-            {/* دو دکمه: ورود (primary) اول، ثبت‌نام (outlined) دوم */}
             <Stack direction="row" justifyContent={{ xs: "center", md: "flex-start" }} sx={{ gap: 1 }}>
               <Button
                 variant="contained"
@@ -161,12 +168,11 @@ export default function LandingPage() {
         دسته‌بندی‌ها
       </Typography>
 
-      {/* اسکرول افقی با snap و مخفی کردن اسکرول‌بار */}
       <Box
         sx={{
           display: "grid",
           gridAutoFlow: "column",
-          gridAutoColumns: { xs: "80%", sm: "45%", md: "25%" },
+          gridAutoColumns: { xs: "80%", sm: "45%", md: "23.5%" },
           gap: 2,
           overflowX: "auto",
           scrollSnapType: "x mandatory",
@@ -177,7 +183,7 @@ export default function LandingPage() {
       >
         {CATEGORIES.map((c) => (
           <Card key={c.key} sx={{ borderRadius: 3, scrollSnapAlign: "start" }}>
-            <CardActionArea component={RouterLink} to={`/products?cat=${c.key}`}>
+            <CardActionArea >
               <CardMedia sx={{ height: 170 }} image={c.img} />
               <CardContent sx={{ textAlign: "center" }}>
                 <Stack alignItems="center" spacing={0.5}>
@@ -229,7 +235,7 @@ export default function LandingPage() {
                 </Stack>
               </CardContent>
               <Box sx={{ p: 2, pt: 0 }}>
-                <Button fullWidth variant="contained" component={RouterLink} to={`/products/${p.id}`} sx={{ borderRadius: 2 }}>
+                <Button fullWidth variant="contained" sx={{ borderRadius: 2 }}>
                   مشاهده
                 </Button>
               </Box>
@@ -253,7 +259,7 @@ export default function LandingPage() {
             <Card sx={{ p: 2.5, borderRadius: 3, height: "100%", textAlign: "center" }}>
               <Typography fontWeight={900}>{r.t}</Typography>
               <Typography color="text.secondary" sx={{ my: 1 }}>{r.d}</Typography>
-              <Button variant="outlined" component={RouterLink} to={r.link} endIcon={<KeyboardArrowLeft />}>
+              <Button variant="outlined" endIcon={<KeyboardArrowLeft />}>
                 شروع کنید
               </Button>
             </Card>
