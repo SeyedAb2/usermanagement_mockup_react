@@ -50,8 +50,8 @@ export type ProductBase = {
   user: { id: string; name: string; avatar: string };
   price: number;
   category: CategoryKey;
-  date: string;     // ISO
-  location: string; // شهر/منطقه
+  date: string;     
+  location: string; 
   rating: number;
   views: number;
   description: string;
