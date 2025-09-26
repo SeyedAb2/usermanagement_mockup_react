@@ -27,6 +27,7 @@ import Error from "../../../shared/components/Error";
 
 import { CategoryKey } from "../../../shared/types/product.type";
 import { UserType } from "../../../shared/types";
+import UserDetailPageSkeleton from "../../../shared/components/skeletons/UserDetailPageSkeleton";
 
 export default function UserDetailPage() {
   const { userId } = useParams();
@@ -85,7 +86,7 @@ export default function UserDetailPage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
-  if (userQuery.isLoading || productsQuery.isLoading) return <p>در حال بارگیری…</p>;
+  if (userQuery.isLoading || productsQuery.isLoading) return <UserDetailPageSkeleton />;
   if (userQuery.isError || productsQuery.isError) return <Error />;
 
   return (

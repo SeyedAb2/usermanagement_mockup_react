@@ -7,7 +7,6 @@ import { scrollToTop } from "../utils/scrollToTop";
 import useToastify from "./useToastify";
 
 export default function useSignUp(){
-
     const { setUser } = useAuthStore()
     const navigate = useNavigate()
     const { notify } = useToastify();

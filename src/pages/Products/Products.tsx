@@ -27,6 +27,7 @@ import { useQueries } from "@tanstack/react-query";
 import { getAllProductApi } from "../../services/api/product";
 import { getAllusersApi } from "../../services/api/auth";
 import Error from "../../shared/components/Error";
+import ProductsPageSkeleton from "../../shared/components/skeletons/ProductsPageSkeleton";
 
 
 export default function Products() {
@@ -95,7 +96,7 @@ export default function Products() {
 
 
   if(isLoading)
-    return <p>در حال بارگیری...</p>
+    return <ProductsPageSkeleton />
 
   if(isError)
     return <Error />

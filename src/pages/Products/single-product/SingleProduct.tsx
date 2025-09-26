@@ -34,6 +34,7 @@ import Error from "../../../shared/components/Error";
 import ProductCard from "../../../shared/components/ProductCard";
 import SpecsList from "../../../shared/components/SpecsList";
 import { toPersianDegit } from "../../../shared/utils/toPersianDigits";
+import ProductDetailPageSkeleton from "../../../shared/components/skeletons/ProductDetailPageSkeleton";
 
 
 
@@ -56,7 +57,7 @@ export default function ProductDetailPage() {
   const isLoading = productQuery.isLoading || allProductsQuery.isLoading;
   const isError = productQuery.isError || allProductsQuery.isError;
 
-  if (isLoading) return <p>در حال بارگذاری...</p>;
+  if (isLoading) return <ProductDetailPageSkeleton />;
   if (isError) return <Error />;
 
   const product = productQuery.data as ProductType;

@@ -18,6 +18,7 @@ import { getAllusersApi } from "../../services/api/auth";
 import Error from "../../shared/components/Error";
 import SearchUserFilter from "../../shared/components/SearchUserFilter";
 import PaginationCard from "../../shared/components/PaginationCard";
+import UsersPageSkeleton from "../../shared/components/skeletons/UsersPageSkeleton";
 
 
 export default function UsersPage() {
@@ -54,7 +55,7 @@ export default function UsersPage() {
   };
 
   if(isLoading)
-    return <div>در حال بارگذاری…</div>;
+    return <UsersPageSkeleton />
 
   if(isError)
     return <Error />

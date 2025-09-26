@@ -1,5 +1,3 @@
-// components/skeletons/MyProductsSkeleton.tsx
-import React from "react";
 import {
   Box,
   Card,
@@ -79,7 +77,7 @@ export default function MyProductsSkeleton() {
                   {["شماره محصول", "عکس محصول", "نام محصول", "تاریخ عرضه", "عملیات"].map(
                     (h, i) => (
                       <TableCell
-                        key={i}
+                        key={h+i}
                         align={i === 0 || i === 4 ? "center" : "left"}
                       >
                         <Skeleton
