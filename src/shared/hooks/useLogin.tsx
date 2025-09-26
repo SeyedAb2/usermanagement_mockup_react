@@ -18,7 +18,7 @@ export default function useLogin(){
             setUser(res);
             notify({type:'success', message:'با موفقیت وارد شدید'})
             setTimeout(() => {
-                navigate('/products')
+                navigate('/dashboard')
             }, 500);
         },
         onError:(err)=>{

@@ -103,7 +103,7 @@ export default function Login() {
               fullWidth
               sx={LabelPosition({rightActive:28,right:15})}
               label="رمز عبور"
-              type="password"
+              type={passwordType}
               variant="outlined"
               margin="normal"
               error={errors.password?.message ? true : false}

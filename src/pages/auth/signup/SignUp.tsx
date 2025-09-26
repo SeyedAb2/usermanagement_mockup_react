@@ -70,7 +70,6 @@ export default function SignUp() {
             </Box>
 
             <form onSubmit={handleSubmit(onSubmit)}>  
-              {/* نام و نام خانوادگی */}
               <TextField
                 fullWidth
                 sx={LabelPosition({right:10,rightActive:26})}
@@ -153,7 +152,6 @@ export default function SignUp() {
               />
               <Typography variant="body2" sx={{color:'error.main', fontSize:10}}>{errors.phone?.message}</Typography>
 
-              {/* رمز عبور */}
               <TextField
                 fullWidth
                 label="رمز عبور"
