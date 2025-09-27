@@ -9,15 +9,17 @@ import { Link as RouterLink } from "react-router";
 import { Search, EditOutlined, DeleteOutline, AddCircleOutline, ChevronRight, ChevronLeft, ImageOutlined } from "@mui/icons-material";
 import { LabelPosition } from "../../../shared/utils/textFieldLabelStyleConfig";
 import { useQuery } from "@tanstack/react-query";
-import { getAllProductApi } from "../../../services/api/product";
+import { getUserProductsApi } from "../../../services/api/product";
 import Error from "../../../shared/components/Error";
 import { ProductType } from "../../../shared/types";
 import { fmtDate } from "../../../shared/types/fmtDate";
 import AlertDialogSlide from "../../../shared/components/AlertDialog";
 import useDelete from "../../../shared/hooks/useDelete";
 import MyProductsSkeleton from "../../../shared/components/skeletons/MyProductsSkeleton";
+import { useAuthStore } from "../../../store/auth.store";
 
 export default function MyProducts() {
+  const {getUser} = useAuthStore()
   const {
     data: products = [],     
     isLoading,
@@ -25,7 +27,7 @@ export default function MyProducts() {
     isSuccess,
   } = useQuery<ProductType[]>({
     queryKey: ["allProduct"],
-    queryFn: getUserProductsApi,
+    queryFn: ()=>getUserProductsApi(getUser()?.id as number),
   });
 
   const {isPending, mutate} = useDelete()
