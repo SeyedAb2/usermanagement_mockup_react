@@ -25,7 +25,7 @@ export default function MyProducts() {
     isSuccess,
   } = useQuery<ProductType[]>({
     queryKey: ["allProduct"],
-    queryFn: getAllProductApi,
+    queryFn: getUserProductsApi,
   });
 
   const {isPending, mutate} = useDelete()
