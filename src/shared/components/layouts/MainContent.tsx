@@ -5,7 +5,9 @@ const MainContent = () => {
     return (
         <>
             <Box sx={{
-                minHeight:'100vh'
+                minHeight:'100vh',
+                mx:1,
+                mt:1
             }}>
                 <Outlet />
             </Box>

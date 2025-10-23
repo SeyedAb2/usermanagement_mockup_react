@@ -1,5 +1,4 @@
 import ScrollToTopHandler from "../../utils/scrollTopHandler";
-import Footer from "./Footer";
 import Header from "./Header";
 import MainContent from './MainContent';
 
@@ -9,7 +8,7 @@ export default function MainLayout() {
             <Header />
             <ScrollToTopHandler />
             <MainContent />
-            <Footer />
+            {/* <Footer /> */}
         </>
     )
 }

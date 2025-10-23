@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "concurrently \"vite --port 3000\" \"cd server && npm start\" \"cd server && serve . -l 4000\" ",
-    "predeploy":"npm run build",
-    "deploy":"gh-pages -d dist",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
@@ -14,12 +14,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@date-io/date-fns-jalali": "^3.2.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@hookform/devtools": "^4.4.0",
     "@hookform/resolvers": "^5.2.1",
     "@mui/icons-material": "^7.3.2",
     "@mui/material": "^7.3.2",
+    "@mui/x-date-pickers": "^8.14.1",
     "@tanstack/react-query": "^5.85.5",
     "axios": "^1.11.0",
     "date-fns-jalali": "^4.1.0-0",
