@@ -14,7 +14,7 @@ import {
 import { ExpandMore } from "@mui/icons-material";
 import { useState } from "react";
 import { useTheme } from "@mui/material/styles";
-import Logo from "../../../assets/images/Logo.png";
+import Logo from "../../../assets/images/logo.png";
 
 export default function Header() { 
   const theme = useTheme();
