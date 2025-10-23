@@ -4,7 +4,7 @@ import NotFound from "../../shared/components/NotFound";
 
 const MainLayout = lazy(()=>import('../../shared/components/layouts/MainLayout'))
 
-const Dashboard = lazy(() => import("../../pages/Dashboard/Dashboard"));
+const Dashboard = lazy(() => import("../../pages/dashboard/Dashboard"));
 const Role = lazy(() => import("../../pages/Role/Role"));
 const Menu = lazy(() => import("../../pages/Menu/Menu"));
 const AddMenuCategory = lazy(() => import("../../pages/AddMenuCategory/AddMenuCategory"));
