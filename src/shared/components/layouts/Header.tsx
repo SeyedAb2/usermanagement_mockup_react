@@ -16,7 +16,7 @@ import { useState } from "react";
 import { useTheme } from "@mui/material/styles";
 import Logo from "../../../assets/images/Logo.png";
 
-export default function Header() {
+export default function Header() { 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
