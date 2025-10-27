@@ -7,7 +7,6 @@ import {
   ViewModule,
   PersonAddAlt,
   AccountCircle,
-  Code,
   DeveloperBoard,
   Terminal, 
   Description, 
@@ -27,16 +26,16 @@ interface DashboardItem {
 }
 
 const USER_MANAGEMENT_ITEMS: DashboardItem[] = [
-  { id: 1, label: "نقش", icon: <Groups2 />, path: "/role" },
-  { id: 2, label: "دسترسی نقش", icon: <AccountCircle />, path: "/access-role" },
-  { id: 3, label: "منو", icon: <Menu />, path: "/menu" },
-  { id: 4, label: "دسته‌بندی منو", icon: <Category />, path: "/menu-category" },
   { id: 5, label: "گروه‌بندی منو", icon: <ViewModule />, path: "/menu-group" },
+  { id: 4, label: "دسته‌بندی منو", icon: <Category />, path: "/menu-category" },
+  { id: 3, label: "منو", icon: <Menu />, path: "/menu" },
   { id: 6, label: "افزودن پرسنل", icon: <PersonAddAlt />, path: "/add-personel" }, 
+  { id: 2, label: "دسترسی نقش", icon: <AccountCircle />, path: "/access-role" },
+  { id: 1, label: "نقش", icon: <Groups2 />, path: "/role" },
 ];
 
 const DEVELOPER_ITEMS: DashboardItem[] = [
-  { id: 7, label: "مدیریت صفحات", icon: <Code />, path: "/add-page" },
+  { id: 7, label: "مدیریت صفحات", icon: <Description />, path: "/add-page" },
   { id: 8, label: "گروه بندی صفحات", icon: <DeveloperBoard />, path: "/category-page" },
   { id: 9, label: "سرویس", icon: <Terminal />, path: "" },
 ];
@@ -309,7 +308,7 @@ export default function Dashboard() {
 
         {/* 1. بخش مدیریت کاربران: 4/12 عرض */}
         {renderSection(
-          "بخش‌های ماک‌آپ مدیریت کاربران",
+          "بخش‌های ماک‌آپ کاربر نهایی",
           USER_MANAGEMENT_ITEMS,
           "#333",
           4, // 2 ستون داخلی
@@ -318,7 +317,7 @@ export default function Dashboard() {
 
         {/* 2. بخش توسعه‌دهندگان: 8/12 عرض */}
         {renderSection(
-          "ابزارهای توسعه‌دهندگان",
+          "بخش های ماک‌آپ توسعه‌دهندگان",
           DEVELOPER_ITEMS,
           "#333",
           4, // 3 ستون داخلی
