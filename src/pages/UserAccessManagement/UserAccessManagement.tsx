@@ -650,7 +650,7 @@ export default function UserAccessManagement() {
 
   // هندلر برای تغییرات در فرم موقت ستون راست
   const handleTempMenuChange = <K extends keyof UserMenuAccess>(menuId: string, k: K, v: UserMenuAccess[K]) => {
-    setTempMenuAccess(prev => prev ? { ...prev, [k]: v } : null);
+    setTempMenuAccess(prev => prev ? { ...prev,menuId, [k]: v } : null);
   };
   
   // هندلر برای تغییرات در چک‌باکس‌های فرم موقت ستون راست
@@ -659,6 +659,7 @@ export default function UserAccessManagement() {
       prev
         ? {
             ...prev,
+            menuId,
             services: prev.services.map((s) =>
               s.key === key ? { ...s, checked: !s.checked } : s
             ),
@@ -671,7 +672,9 @@ export default function UserAccessManagement() {
     setTempMenuAccess((prev) =>
       prev
         ? {
+          
             ...prev,
+            menuId,
             routes: prev.routes.map((r) =>
               r.path === path ? { ...r, checked: !r.checked } : r
             ),

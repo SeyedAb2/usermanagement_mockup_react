@@ -1,4 +1,4 @@
-import { Box, Grid, Paper, Typography, ButtonBase } from "@mui/material";
+import { Box, Grid, Paper, Typography, ButtonBase, Divider } from "@mui/material";
 import { useNavigate } from "react-router";
 import {
   Groups2,
@@ -9,8 +9,13 @@ import {
   AccountCircle,
   Code,
   DeveloperBoard,
+  Terminal, 
+  Description, 
+  AccountBox, 
+  ArrowBack, // **تغییر ۱: استفاده از ArrowBack برای جهت RTL و اتصال مراحل**
 } from "@mui/icons-material";
 import { useState, ReactNode } from "react";
+import React from "react"; // نیاز به import React برای استفاده از React.Fragment
 
 // ------------------ تایپ‌ها و داده‌ها ------------------
 
@@ -27,13 +32,162 @@ const USER_MANAGEMENT_ITEMS: DashboardItem[] = [
   { id: 3, label: "منو", icon: <Menu />, path: "/menu" },
   { id: 4, label: "دسته‌بندی منو", icon: <Category />, path: "/menu-category" },
   { id: 5, label: "گروه‌بندی منو", icon: <ViewModule />, path: "/menu-group" },
-  { id: 6, label: "افزودن پرسنل", icon: <PersonAddAlt />, path: "/add-personel" }, // 6 آیتم
+  { id: 6, label: "افزودن پرسنل", icon: <PersonAddAlt />, path: "/add-personel" }, 
 ];
 
 const DEVELOPER_ITEMS: DashboardItem[] = [
   { id: 7, label: "مدیریت صفحات", icon: <Code />, path: "/add-page" },
-  { id: 8, label: "گروه بندی صفحات", icon: <DeveloperBoard />, path: "/category-page" }, // 2 آیتم
+  { id: 8, label: "گروه بندی صفحات", icon: <DeveloperBoard />, path: "/category-page" },
+  { id: 9, label: "سرویس", icon: <Terminal />, path: "" },
 ];
+
+// ------------------ داده‌های فلوچارت جدید ------------------
+
+interface FlowStep {
+  label: string;
+  icon: ReactNode;
+  color: string;
+  section: 'توسعه دهنده' | 'کاربرنهایی';
+}
+
+const FLOW_STEPS: FlowStep[] = [
+  { label: "سرویس", icon: <Terminal />, color: "#4caf50", section: 'توسعه دهنده' },
+  { label: "صفحه", icon: <Description />, color: "#00bcd4", section: 'توسعه دهنده' },
+  { label: "منو", icon: <Menu />, color: "#ff9800", section: 'کاربرنهایی' },
+  { label: "نقش", icon: <Groups2 />, color: "#f44336", section: 'کاربرنهایی' },
+  { label: "کاربر", icon: <AccountBox />, color: "#2196f3", section: 'کاربرنهایی' },
+];
+
+// **تغییر ۲: بلد کردن کلمات ستاره‌دار در متن**
+const FLOW_DESCRIPTION = "در بخش توسعه دهندگان (Dev) ابتدا **سرویس** و سپس **صفحه** تعریف می‌شود، یعنی سرویس ایجاد می‌شود بعد به صفحه‌ای وصل می‌شود. کاربرنهایی ابتدا از این صفحات استفاده می‌کند تا **منو** را ایجاد کند. پس از آن **نقش** تعریف می‌شود و در بخش مدیریت دسترسی نقش، منوها به نقش اضافه می‌شود. در گام نهایی بعد از ایجاد نقش، به سراغ ایجاد **کاربر** رفته و نقش‌های موجود را به کاربر اختصاص می‌دهیم.";
+
+// ------------------ کامپوننت نمایش روند کار ------------------
+
+const StepFlow = () => {
+    return (
+        <Paper
+            elevation={4}
+            sx={{
+                borderRadius: "16px",
+                p: { xs: 3, sm: 4 },
+                mb: 4, 
+                bgcolor: "#fff",
+                boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.1)",
+            }}
+        >
+            <Typography
+                variant="h5"
+                sx={{ mb: 3, fontWeight: "bold", textAlign: "right", color: "#303f9f" }}
+            >
+                 روند کار با سامانه مدیریت کاربران
+            </Typography>
+
+            {/* بخش فلوچارت اصلی */}
+            <Box sx={{ overflowX: 'auto', py: 2 }}>
+                <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: { xs: 'flex-start', md: 'space-between' },
+                    minWidth: { xs: '800px', md: '100%' } 
+                }}>
+                    {FLOW_STEPS.map((step, index) => (
+                        <React.Fragment key={index}>
+                            <Box 
+                                sx={{ 
+                                    display: 'flex', 
+                                    flexDirection: 'column', 
+                                    alignItems: 'center',
+                                    minWidth: '130px', 
+                                    position: 'relative', // برای قرارگیری صحیح خط وسط
+                                }}
+                            >
+                                <Paper
+                                    elevation={1}
+                                    sx={{
+                                        p: 2,
+                                        borderRadius: '12px',
+                                        bgcolor: step.section === 'توسعه دهنده' ? '#e1f5fe' : '#e8f5e9', 
+                                        border: `2px solid ${step.color}`,
+                                        transition: 'all 0.3s',
+                                        '&:hover': {
+                                            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                                            transform: 'translateY(-4px)'
+                                        }
+                                    }}
+                                >
+                                    <Box sx={{ color: step.color, mb: 0.5, '& svg': { fontSize: 36 } }}>
+                                        {step.icon}
+                                    </Box>
+                                    <Typography 
+                                        variant="caption" 
+                                        sx={{ 
+                                            fontWeight: 'bold', 
+                                            color: '#333',
+                                            display: 'block',
+                                            textAlign: 'center'
+                                        }}
+                                    >
+                                        {step.label}
+                                    </Typography>
+                                </Paper>
+                                <Typography 
+                                    variant="overline" 
+                                    sx={{ mt: 1, color: step.section === 'توسعه دهنده' ? '#0277bd' : '#2e7d32', fontWeight: 'bold' }}
+                                >
+                                    {step.section}
+                                </Typography>
+                            </Box>
+
+                            {/* **تغییر ۳: پیکان اتصال معکوس و افقی** */}
+                            {index < FLOW_STEPS.length - 1 && (
+                                <Box sx={{ 
+                                    flexGrow: 1, // برای پر کردن فاصله
+                                    height: '2px', 
+                                    mx: 1, 
+                                    bgcolor: '#cfd8dc', 
+                                    position: 'relative',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    maxWidth: { xs: '80px', md: '100px' } 
+                                }}>
+                                    <ArrowBack sx={{ 
+                                        color: '#90a4ae', 
+                                        fontSize: 32, 
+                                        position: 'absolute',
+                                        bgcolor: 'white', // برای پوشاندن خط زیر پیکان
+                                        borderRadius: '50%',
+                                        p: 0.5,
+                                    }} />
+                                </Box>
+                            )}
+                        </React.Fragment>
+                    ))}
+                </Box>
+            </Box>
+
+            <Divider sx={{ my: 3 }} />
+
+            {/* بخش توضیحات */}
+            <Typography 
+                variant="body2" 
+                sx={{ 
+                    textAlign: 'justify', 
+                    lineHeight: 2, 
+                    color: '#555',
+                    p: { xs: 1, sm: 2 },
+                    bgcolor: '#f5f5f5',
+                    borderRadius: '8px',
+                    direction: 'rtl' // اطمینان از راست به چپ بودن متن
+                }}
+            >
+                {/* استفاده از dangerouslySetInnerHTML برای اعمال Bold در JSX */}
+                <span dangerouslySetInnerHTML={{ __html: FLOW_DESCRIPTION.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>') }} />
+            </Typography>
+        </Paper>
+    );
+};
+
 
 // ------------------ کامپوننت اصلی ------------------
 
@@ -43,12 +197,9 @@ export default function Dashboard() {
 
   /**
    * رندر کردن آیتم‌های داخلی گرید با اندازه ستون مشخص
-   * @param item - داده‌های آیتم
-   * @param cols - تعداد ستون‌های مورد نظر (6 برای دو ستون، 4 برای سه ستون)
    */
   const renderGridItem = (item: DashboardItem, cols: 6 | 4 | 3) => (
-    // با تنظیم xs={cols}، تعداد ستون‌های داخلی مشخص می‌شود.
-    <Grid key={item.id} size={{xs:cols,sm:cols,md:cols,}} sx={{ p: 1 }}> 
+    <Grid key={item.id}  size={{xs:cols,sm:cols,md:cols}}  sx={{ p: 1 }}> 
       <ButtonBase
         onClick={() => navigate(item.path)}
         focusRipple
@@ -99,13 +250,10 @@ export default function Dashboard() {
   );
 
   /**
-   * رندر کردن کل یک بخش داشبورد (به عنوان یک ستون اصلی)
-   * @param mainCols - عرض بخش اصلی در سیستم 12 ستونی (4 یا 8)
+   * رندر کردن کل یک بخش داشبورد (با حفظ نسبت 4:8)
    */
   const renderSection = (title: string, items: DashboardItem[], titleColor: string, itemCols: 6 | 4 | 3, mainCols: 12 | 6 | 8 | 4) => (
-    // xs={12} برای نمایش تمام عرض در موبایل
-    // md={mainCols} برای سهم‌بندی در دسکتاپ
-    <Grid size={{xs:12, md:mainCols}} key={title}> 
+    <Grid size={{xs:12,md:mainCols}}  key={title}> 
       <Paper
         elevation={3}
         sx={{
@@ -147,30 +295,34 @@ export default function Dashboard() {
         justifyContent: "center",
       }}
     >
-      {/* کانتینر اصلی برای قرارگیری دو ستون کنار هم */}
-      <Grid container sx={{
+      <Grid container spacing={3} maxWidth="1200px" sx={{
         display:'flex',
         alignItems:'start',
         justifyContent:'center',
-        gap:2
-      }} spacing={3} maxWidth="1200px" > 
-        
-        {/* 1. بخش مدیریت کاربران: 4/12 عرض (ستون باریک) */}
+      }} > 
+
+        {/* ------------------ بلوک روند کار (Flowchart) ------------------ */}
+        <Grid  size={{xs:12}}>
+            <StepFlow />
+        </Grid>
+        {/* ------------------------------------------------------------------- */}
+
+        {/* 1. بخش مدیریت کاربران: 4/12 عرض */}
         {renderSection(
           "بخش‌های ماک‌آپ مدیریت کاربران",
-          USER_MANAGEMENT_ITEMS, // 6 آیتم
+          USER_MANAGEMENT_ITEMS,
           "#333",
-          4, // **تغییر برای 2 ستون داخلی** (بهتر جا می‌گیرد)
-          6 // **4 واحد از 12 واحد عرض کل (ستون کوچکتر)**
+          4, // 2 ستون داخلی
+          6 // 4 واحد از 12 واحد عرض کل
         )}
 
-        {/* 2. بخش توسعه‌دهندگان: 8/12 عرض (ستون عریض) */}
+        {/* 2. بخش توسعه‌دهندگان: 8/12 عرض */}
         {renderSection(
           "ابزارهای توسعه‌دهندگان",
-          DEVELOPER_ITEMS, // 2 آیتم
+          DEVELOPER_ITEMS,
           "#333",
-          6, // **تغییر برای 3 ستون داخلی** (فضای خالی کمتر)
-          4 // **8 واحد از 12 واحد عرض کل (ستون بزرگتر)**
+          4, // 3 ستون داخلی
+          6// 8 واحد از 12 واحد عرض کل
         )}
         
       </Grid>
