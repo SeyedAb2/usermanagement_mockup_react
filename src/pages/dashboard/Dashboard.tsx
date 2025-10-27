@@ -7,8 +7,8 @@ import {
   ViewModule,
   PersonAddAlt,
   AccountCircle,
-  Code, // آیکون برای مدیریت صفحات
-  DeveloperBoard, // آیکون برای دسته‌بندی صفحات
+  Code,
+  DeveloperBoard,
 } from "@mui/icons-material";
 import { useState, ReactNode } from "react";
 
@@ -27,12 +27,12 @@ const USER_MANAGEMENT_ITEMS: DashboardItem[] = [
   { id: 3, label: "منو", icon: <Menu />, path: "/menu" },
   { id: 4, label: "دسته‌بندی منو", icon: <Category />, path: "/menu-category" },
   { id: 5, label: "گروه‌بندی منو", icon: <ViewModule />, path: "/menu-group" },
-  { id: 6, label: "افزودن پرسنل", icon: <PersonAddAlt />, path: "/add-personel" },
+  { id: 6, label: "افزودن پرسنل", icon: <PersonAddAlt />, path: "/add-personel" }, // 6 آیتم
 ];
 
 const DEVELOPER_ITEMS: DashboardItem[] = [
   { id: 7, label: "مدیریت صفحات", icon: <Code />, path: "/add-page" },
-  { id: 8, label: "گروه بندی صفحات", icon: <DeveloperBoard />, path: "/category-page" },
+  { id: 8, label: "گروه بندی صفحات", icon: <DeveloperBoard />, path: "/category-page" }, // 2 آیتم
 ];
 
 // ------------------ کامپوننت اصلی ------------------
@@ -44,11 +44,11 @@ export default function Dashboard() {
   /**
    * رندر کردن آیتم‌های داخلی گرید با اندازه ستون مشخص
    * @param item - داده‌های آیتم
-   * @param cols - تعداد ستون‌های مورد نظر (مثلاً 6 برای دو ستون)
+   * @param cols - تعداد ستون‌های مورد نظر (6 برای دو ستون، 4 برای سه ستون)
    */
   const renderGridItem = (item: DashboardItem, cols: 6 | 4 | 3) => (
-    // با تنظیم xs={6}، در هر اندازه صفحه‌ای (از موبایل به بالا) دو ستون خواهیم داشت
-    <Grid size={{xs:cols,sm:cols,md:cols}} key={item.id} sx={{ p: 1 }}> 
+    // با تنظیم xs={cols}، تعداد ستون‌های داخلی مشخص می‌شود.
+    <Grid key={item.id} size={{xs:cols,sm:cols,md:cols,}} sx={{ p: 1 }}> 
       <ButtonBase
         onClick={() => navigate(item.path)}
         focusRipple
@@ -100,11 +100,12 @@ export default function Dashboard() {
 
   /**
    * رندر کردن کل یک بخش داشبورد (به عنوان یک ستون اصلی)
+   * @param mainCols - عرض بخش اصلی در سیستم 12 ستونی (4 یا 8)
    */
-  const renderSection = (title: string, items: DashboardItem[], titleColor: string, itemCols: 6 | 4 | 3) => (
-    // md={6}: دو ستون مساوی در دسکتاپ (کنار هم)
-    // xs={12}: یک ستون کامل در موبایل (زیر هم)
-    <Grid sx={{xs:12,md:6}}> 
+  const renderSection = (title: string, items: DashboardItem[], titleColor: string, itemCols: 6 | 4 | 3, mainCols: 12 | 6 | 8 | 4) => (
+    // xs={12} برای نمایش تمام عرض در موبایل
+    // md={mainCols} برای سهم‌بندی در دسکتاپ
+    <Grid size={{xs:12, md:mainCols}} key={title}> 
       <Paper
         elevation={3}
         sx={{
@@ -147,27 +148,29 @@ export default function Dashboard() {
       }}
     >
       {/* کانتینر اصلی برای قرارگیری دو ستون کنار هم */}
-      <Grid sx={{
+      <Grid container sx={{
         display:'flex',
         alignItems:'start',
         justifyContent:'center',
         gap:2
       }} spacing={3} maxWidth="1200px" > 
         
-        {/* 1. بخش مدیریت کاربران (ماک‌آپ کاربر نهایی) - با تنظیم itemCols=6، طرح 2 ستونی حفظ می‌شود */}
+        {/* 1. بخش مدیریت کاربران: 4/12 عرض (ستون باریک) */}
         {renderSection(
           "بخش‌های ماک‌آپ مدیریت کاربران",
-          USER_MANAGEMENT_ITEMS,
+          USER_MANAGEMENT_ITEMS, // 6 آیتم
           "#333",
-          4 // هر آیتم 50% عرض گرید داخلی را می‌گیرد (2 ستون)
+          4, // **تغییر برای 2 ستون داخلی** (بهتر جا می‌گیرد)
+          6 // **4 واحد از 12 واحد عرض کل (ستون کوچکتر)**
         )}
 
-        {/* 2. بخش توسعه‌دهندگان - با تنظیم itemCols=6، طرح 2 ستونی ایجاد می‌شود */}
+        {/* 2. بخش توسعه‌دهندگان: 8/12 عرض (ستون عریض) */}
         {renderSection(
           "ابزارهای توسعه‌دهندگان",
-          DEVELOPER_ITEMS,
+          DEVELOPER_ITEMS, // 2 آیتم
           "#333",
-          6 // هر آیتم 50% عرض گرید داخلی را می‌گیرد (2 ستون)
+          6, // **تغییر برای 3 ستون داخلی** (فضای خالی کمتر)
+          4 // **8 واحد از 12 واحد عرض کل (ستون بزرگتر)**
         )}
         
       </Grid>
