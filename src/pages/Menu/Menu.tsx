@@ -56,6 +56,7 @@ const schema = yup.object({
     )
     .min(1, "حداقل یک نام برای منو الزامی است"),
   page: yup.string().required("انتخاب صفحه الزامی است"),
+  defaultName: yup.string().required("نام پیش فرض الزامی است"),
   description: yup.string().nullable(),
   icon: yup.string().nullable(),
 });
@@ -164,6 +165,52 @@ export default function Menu() {
         >
           افزودن منو
         </Typography>
+
+        {/* 🔹 نام پیش فرض */}
+        <Box sx={{ mb: 3 }}>
+          <Typography sx={{ mb: 1, fontWeight: 500, textAlign: "right" }}>
+            نام پیش فرض  *
+          </Typography>
+
+          <Box
+              
+              sx={{
+                display: "flex",
+                gap: 1,
+                mb: 1.5,
+                alignItems: "center",
+              }}
+            >
+              <Controller
+                name="defaultName"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    error={!!errors.defaultName}
+                    helperText={
+                      errors.defaultName
+                        ? errors.defaultName?.message
+                        : ""
+                    }
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "10px",
+                        "& fieldset": { borderColor: "#ccc" },
+                        "&:hover fieldset": { borderColor: "#085E42" },
+                        "&.Mui-focused fieldset": { borderColor: "#085E42" },
+                      },
+                      ...LabelPosition({ right: 25, rightActive: 30 }),
+                    }}
+                    placeholder="نام پیش فرض..."
+                  />
+                )}
+              />
+            </Box>
+
+          
+        </Box>
 
         {/* 🔹 نام‌های منو */}
         <Box sx={{ mb: 3 }}>

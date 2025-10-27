@@ -1,10 +1,7 @@
 import {
-  Box, Button, Paper, TextField, Typography, MenuItem
+  Box, Button, Paper, TextField, Typography, MenuItem, Checkbox, ListItemText
 } from "@mui/material";
-// اگه از API size استفاده می‌کنی:
-import {Grid} from "@mui/material"; // ⬅️ Grid v2
-// اگر Grid معمولی می‌خواهی، این خط را حذف کن و از Grid عادی با item/xs/... استفاده کن
-
+import { Grid } from "@mui/material"; // ⬅️ Grid v2
 import { Image, PersonAddAlt } from "@mui/icons-material";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -15,38 +12,22 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
 import { useState } from "react";
 import "react-toastify/dist/ReactToastify.css";
+// فرض بر این است که این فایل وجود دارد
 import { LabelPosition } from "../../shared/utils/textFieldLabelStyleConfig";
 
 type PersonnelForm = yup.InferType<typeof schema>;
 
-
-// interface PersonnelForm {
-//   firstName: string;
-//   lastName: string;
-//   nationalCode: string;
-//   phoneNumber: string;
-//   personnelCode: string;
-//   gender: string;
-//   role: string;
-//   serviceUnit: string;
-//   accountNumber: string;
-//   tafsiliCode: string;
-//   address: string;
-//   birthDate: Date | null;
-// }
-
 // ✅ اسکیما تایپ‌دار و کامل (اجباری/اختیاری)
-const schema= yup.object({
+const schema = yup.object({
   firstName: yup.string().required("نام الزامی است"),
   lastName: yup.string().required("نام خانوادگی الزامی است"),
   nationalCode: yup.string().required("کد ملی الزامی است"),
   phoneNumber: yup.string().required("شماره همراه الزامی است"),
   personnelCode: yup.string().required("کد پرسنلی الزامی است"),
   gender: yup.string().required("انتخاب جنسیت الزامی است"),
-  role: yup.string().required("انتخاب نقش الزامی است"),
+  role: yup.array().of(yup.string()).min(1, "انتخاب حداقل یک نقش الزامی است").required("انتخاب نقش الزامی است"), // min(1) اضافه شد
   serviceUnit: yup.string().required("انتخاب واحد خدمت الزامی است"),
   tafsiliCode: yup.string().required("شناسه تفصیلی الزامی است"),
-  // اختیاری‌ها
   accountNumber: yup.string().notRequired().default(""),
   address: yup.string().notRequired().default(""),
   birthDate: yup.date().nullable().notRequired().default(null),
@@ -62,7 +43,7 @@ export default function AddPersonnel() {
     reset,
     formState: { errors },
   } = useForm<PersonnelForm>({
-    resolver: yupResolver(schema), // ❌ جنریک نده
+    resolver: yupResolver(schema),
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -70,7 +51,7 @@ export default function AddPersonnel() {
       phoneNumber: "",
       personnelCode: "",
       gender: "",
-      role: "",
+      role: [], // مقدار پیش‌فرض یک آرایه خالی است
       serviceUnit: "",
       accountNumber: "",
       tafsiliCode: "",
@@ -90,7 +71,21 @@ export default function AddPersonnel() {
     reset();
     setTimeout(() => navigate("/"), 1500);
   };
-  
+
+  const rolesList = [
+    "ترابری", 
+    "راننده", 
+    "حسابدار", 
+    "تنخواه", 
+    "خزانه دار", 
+    "مدیر مالی", 
+    "مدیر منابع انسانی", 
+    "مسئول خرید بازرگانی", 
+    "مرغدار", 
+    "معاون کشتارگاه", 
+    "مسئول واحد پرورش"
+  ];
+
   return (
     <Box
       sx={{
@@ -129,9 +124,7 @@ export default function AddPersonnel() {
         {/* 🔹 فرم اصلی */}
         <Box component="form" onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={3} alignItems="flex-start">
-            {/* ✅ باکس آپلود عکس سمت چپ */}
             
-
             {/* ✅ فیلدهای سمت راست */}
             <Grid size={{
                 xs:12,
@@ -151,7 +144,7 @@ export default function AddPersonnel() {
                   <Grid size={{
                     xs:12,
                     md:6
-                }} key={f.name}>
+                  }} key={f.name}>
                     <Controller
                       name={f.name as keyof PersonnelForm}
                       control={control}
@@ -162,16 +155,14 @@ export default function AddPersonnel() {
                           label={f.label}
                           fullWidth
                           error={!!errors[f.name as keyof PersonnelForm]}
-                          helperText={
-                            errors[f.name as keyof PersonnelForm]?.message
-                          }
+                          helperText={errors[f.name as keyof PersonnelForm]?.message}
                         />
                       )}
                     />
                   </Grid>
                 ))}
 
-                {/* 🔹 نقش */}
+                {/* 🔹 نقش - تبدیل شده به Multi-Select */}
                 <Grid size={{
                     xs:12,
                     md:6
@@ -185,16 +176,27 @@ export default function AddPersonnel() {
                         select
                         fullWidth
                         label="نقش *"
-                        sx={{...LabelPosition({ right: 25, rightActive: 30 })}}
+                        // ✅ اضافه شدن SelectProps
+                        SelectProps={{ 
+                          multiple: true,
+                          // نحوه نمایش مقادیر انتخاب شده
+                          renderValue: (selected) => (selected as string[]).join(', '),
+                        }}
+                        sx={{ ...LabelPosition({ right: 25, rightActive: 30 }) }}
                         error={!!errors.role}
                         helperText={errors.role?.message}
                       >
-                        <MenuItem value="مدیر">مدیر</MenuItem>
-                        <MenuItem value="اپراتور">اپراتور</MenuItem>
-                        <MenuItem value="کاربر عادی">کاربر عادی</MenuItem>
+                        {/* آیتم‌های منو با چک‌باکس */}
+                        {rolesList.map((role) => (
+                          <MenuItem key={role} value={role}>
+                            <Checkbox checked={field.value.indexOf(role) > -1} />
+                            <ListItemText primary={role} />
+                          </MenuItem>
+                        ))}
                       </TextField>
                     )}
                   />
+
                 </Grid>
 
                 {/* 🔹 جنسیت */}
@@ -286,6 +288,7 @@ export default function AddPersonnel() {
               </Grid>
             </Grid>
 
+            {/* ✅ باکس آپلود عکس سمت چپ */}
             <Grid size={{
                 xs:12,
                 md:3

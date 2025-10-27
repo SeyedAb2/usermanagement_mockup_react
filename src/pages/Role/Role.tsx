@@ -1,10 +1,10 @@
 import {
   Box,
   Button,
-  MenuItem,
+  // MenuItem,
   TextField,
   Typography,
-  FormHelperText,
+  // FormHelperText,
 } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -12,8 +12,8 @@ import * as yup from "yup";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useState } from "react";
-import { Dashboard, Settings, Group, ListAlt } from "@mui/icons-material";
+// import { useState } from "react";
+// import { Dashboard, Settings, Group, ListAlt } from "@mui/icons-material";
 import { LabelPosition } from "../../shared/utils/textFieldLabelStyleConfig";
 
 
@@ -27,12 +27,12 @@ const schema = yup.object({
 
 export default function AddRole() {
   const navigate = useNavigate();
-  const [menus] = useState([
-    { id: "dashboard", title: "داشبورد عمومی", icon: <Dashboard />, desc: "dashboard" },
-    { id: "users", title: "مدیریت کاربران", icon: <Group />, desc: "users" },
-    { id: "roles", title: "مدیریت نقش‌ها", icon: <ListAlt />, desc: "roles" },
-    { id: "settings", title: "تنظیمات سیستم", icon: <Settings />, desc: "settings" },
-  ]);
+  // const [menus] = useState([
+  //   { id: "dashboard", title: "داشبورد عمومی", icon: <Dashboard />, desc: "dashboard" },
+  //   { id: "users", title: "مدیریت کاربران", icon: <Group />, desc: "users" },
+  //   { id: "roles", title: "مدیریت نقش‌ها", icon: <ListAlt />, desc: "roles" },
+  //   { id: "settings", title: "تنظیمات سیستم", icon: <Settings />, desc: "settings" },
+  // ]);
 
   const {
     handleSubmit,
@@ -118,7 +118,7 @@ export default function AddRole() {
         />
 
         {/* 🔹 منوی پیش‌فرض */}
-        <Controller
+        {/* <Controller
           name="defaultMenu"
           control={control}
           render={({ field }) => (
@@ -172,7 +172,7 @@ export default function AddRole() {
               )}
             </Box>
           )}
-        />
+        /> */}
 
         {/* 🔹 توضیحات */}
         <Controller
