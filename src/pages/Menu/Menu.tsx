@@ -51,7 +51,7 @@ const schema = yup.object({
     .array()
     .of(
       yup.object({
-        value: yup.string().required("نام منو الزامی است"),
+        value: yup.string()
       })
     )
     .min(1, "حداقل یک نام برای منو الزامی است"),
@@ -215,7 +215,7 @@ export default function Menu() {
         {/* 🔹 نام‌های منو */}
         <Box sx={{ mb: 3 }}>
           <Typography sx={{ mb: 1, fontWeight: 500, textAlign: "right" }}>
-            نام‌های منو *
+            نام‌های منو 
           </Typography>
 
           {fields.map((field, index) => (

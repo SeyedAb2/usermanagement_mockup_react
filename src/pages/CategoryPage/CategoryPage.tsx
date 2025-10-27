@@ -18,10 +18,10 @@ import { LabelPosition } from "../../shared/utils/textFieldLabelStyleConfig";
 // 1. ✅ تعریف شمای ولیدیشن (Schema Validation)
 // =================================================================
 const schema = yup.object({
-  // فیلد اجباری اول: نام دسته (نام ریپوزیتوری)
-  categoryName: yup.string().required("نام دسته (نام ریپوزیتوری) الزامی است"),
-  // فیلد اجباری دوم: آدرس مخزن پروژه (استفاده از ولیدیشن URL برای اطمینان بیشتر)
-  projectRepoUrl: yup.string().url("فرمت آدرس معتبر نیست").required("آدرس مخزن پروژه الزامی است"),
+  // فیلد اجباری اول: نام گروه
+  categoryName: yup.string().required("نام گروه الزامی است"),
+  // فیلد اجباری دوم: Base Url (استفاده از ولیدیشن URL برای اطمینان بیشتر)
+  projectRepoUrl: yup.string().url("فرمت آدرس معتبر نیست").required("Base Url الزامی است"),
   // فیلد اختیاری (مانند توضیحات در کامپوننت قبلی)
   description: yup.string().nullable(),
 });
@@ -45,7 +45,7 @@ export default function CategoryPage() {
   const onSubmit = () => {
 
     // ✅ شبیه‌سازی موفقیت
-    toast.success("دسته بندی صفحه با موفقیت ثبت شد!");
+    toast.success("گروهبندی صفحه با موفقیت ثبت شد!");
     
     // پاک کردن فرم پس از ارسال موفق
     reset(); 
@@ -86,17 +86,17 @@ export default function CategoryPage() {
           variant="h6"
           sx={{ fontWeight: "bold", mb: 1, textAlign: "right" }}
         >
-          ساخت دسته بندی صفحه
+          ساخت گروهبندی صفحه
         </Typography>
 
-        {/* 🔹 نام دسته (اجباری) */}
+        {/* 🔹 نام گروه(اجباری) */}
         <Controller
           name="categoryName"
           control={control}
           render={({ field }) => (
             <TextField
               {...field}
-              label="نام دسته (نام ریپوزیتوری) *" // عنوان فیلد
+              label="نام گروه *" // عنوان فیلد
               fullWidth
               error={!!errors.categoryName}
               helperText={errors.categoryName?.message}
@@ -118,14 +118,14 @@ export default function CategoryPage() {
           )}
         />
         
-        {/* 🔹 آدرس مخزن پروژه (اجباری) */}
+        {/* 🔹 Base Url (اجباری) */}
         <Controller
           name="projectRepoUrl"
           control={control}
           render={({ field }) => (
             <TextField
               {...field}
-              label="آدرس مخزن پروژه *" // عنوان فیلد
+              label="Base Url *" // عنوان فیلد
               fullWidth
               error={!!errors.projectRepoUrl}
               helperText={errors.projectRepoUrl?.message}
@@ -191,7 +191,7 @@ export default function CategoryPage() {
               borderRadius: "8px",
             }}
           >
-            ثبت دسته بندی
+            ثبت گروهبندی
           </Button>
         </Box>
       </Box>

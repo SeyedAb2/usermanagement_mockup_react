@@ -12,6 +12,7 @@ const AddMenuGroup = lazy(() => import("../../pages/AddMenuGroup/AddMenuGroup"))
 const AddPersonnel = lazy(() => import("../../pages/AddPersonnel/AddPersonnel"));
 const UserAccessManagement = lazy(() => import("../../pages/UserAccessManagement/UserAccessManagement"));
 const CategoryPage = lazy(() => import("../../pages/CategoryPage/CategoryPage"));
+const AddPage = lazy(() => import("../../pages/AddPage/AddPage"));
 
 const router = createBrowserRouter([
   {
@@ -27,6 +28,7 @@ const router = createBrowserRouter([
       { path: "add-personel", element: <AddPersonnel /> },
       { path: "access-role", element: <UserAccessManagement /> },
       { path: "category-page", element: <CategoryPage /> },
+      { path: "add-page", element: <AddPage /> },
     ],
   },
 ]);
