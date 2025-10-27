@@ -47,12 +47,10 @@ import {
 } from "@mui/icons-material";
 
 import { useMemo, useState } from "react";
+// فرض: این کامپوننت‌ها از مسیرهای نسبی زیر وجود دارند
 import DeleteConfirmModal from "../../components/access/DeleteConfirmModal";
-import AddMenuCategoryModal from "../../components/menu/AddMenuCategoryModal";
 import { LabelPosition } from "../../shared/utils/textFieldLabelStyleConfig";
-import { useNavigate } from "react-router";
-
-// فرض بر این است که LabelPosition از فایل دیگری import شده است
+// فرض: این utility برای تنظیم استایل Label TextField وجود دارد
 
 
 
@@ -61,7 +59,7 @@ type ServicePerm = { key: string; label: string; checked?: boolean };
 type RoutePerm = { path: string; label: string; checked?: boolean };
 
 // اصلاح نام تایپ برای جلوگیری از تداخل با کامپوننت MenuItem از MUI
-type MenuItemType = { 
+type MenuItemType = {
   id: string;
   group: string; // گروه‌بندی منو (برای سرچ)
   titleFa: string;
@@ -295,168 +293,41 @@ const MENU_NAMES_OPTIONS = [
     "مدیریت کل",
 ];
 
-export default function UserAccessManagement() {
-  const navigate = useNavigate();
-  const [search, setSearch] = useState("");
-  const [categories, setCategories] = useState<string[]>(INIT_CATEGORIES);
-  const [resultsExpanded, setResultsExpanded] = useState<string | false>(false);
-  const [editMenuId, setEditMenuId] = useState<string | null>(null); // ID منوی در حال ویرایش
+// ------------------ کامپوننت فرم انتخاب/ویرایش ------------------
 
-  // ستون وسط: دسترسی‌های فعلی کاربر
-  const [userAccess, setUserAccess] = useState<UserMenuAccess[]>([]);
-
-  // مودال‌ها
-  const [deleteOpen, setDeleteOpen] = useState<{
-    open: boolean;
-    id?: string;
-  }>({ open: false });
-
-  const [addCatOpen, setAddCatOpen] = useState(false);
-  const [pendingCatSetter, setPendingCatSetter] = useState<
-    ((val: string) => void) | null
-  >(null);
-  
-  // ------------------ منطق‌های محاسباتی ------------------
-  
-  // ابزاری برای پیدا کردن آیکون و نام نمایشی بر اساس کلید دسته‌بندی
-  const getCategoryDisplay = (key: string | null | undefined): { label: string, icon: React.ReactNode } => {
-    // ابتدا در لیست داده‌های اصلی جستجو می‌کند
-    const data = CATEGORIES_DATA.find(c => c.key === key);
-    if (data) return data;
+interface MenuSelectionFormProps {
+    m: UserMenuAccess;
+    isEditing: boolean; // برای ستون وسط: حالت ویرایش است
+    isAdding: boolean; // برای ستون راست: حالت افزودن است
+    categories: string[];
+    getCategoryDisplay: (key: string | null | undefined) => { label: string, icon: React.ReactNode };
+    // هندلرهای عمومی
+    handleEditChange: <K extends keyof UserMenuAccess>(menuId: string, k: K, v: UserMenuAccess[K]) => void;
+    toggleService: (menuId: string, key: string) => void;
+    toggleRoute: (menuId: string, path: string) => void;
+    // هندلرهای نهایی
+    handleEditSave: () => void; // برای ستون وسط (تأیید ویرایش)
+    handleDelete?: (id: string) => void; // برای ستون وسط (حذف)
+    handleAddFinal: () => void; // برای ستون راست (تأیید و افزودن)
     
-    // اگر کلید null/undefined/"" باشد، اطلاعات "ندارد" را برمی‌گرداند
-    if (key === null || key === undefined || key === "" || key === "بدون دسته‌بندی") {
-        return { label: "بدون دسته‌بندی", icon: <NotInterested color="disabled" /> };
-    }
+}
+
+const MenuSelectionForm: React.FC<MenuSelectionFormProps> = ({
+    m,
+    isEditing,
+    isAdding,
+    categories,
+    getCategoryDisplay,
+    handleEditChange,
+    toggleService,
+    toggleRoute,
+    handleEditSave,
+    handleDelete,
+    handleAddFinal,
+}) => {
     
-    // برای دسته‌بندی‌های اضافه شده در لحظه (که فقط کلیدشان در state وجود دارد)
-    return { label: key, icon: <ChevronLeft color="inherit" /> };
-  };
-
-
-  const filteredMenus = useMemo(() => {
-    const s = search.trim();
-    if (!s) return MOCK_MENUS;
-    return MOCK_MENUS.filter(
-      (m) =>
-        m.group.includes(s) ||
-        m.titleFa.includes(s) ||
-        m.titleEn.toLowerCase().includes(s.toLowerCase())
-    );
-  }, [search]);
-
-  // دسترسی‌های مدیر واحد پرورش گروه‌بندی شده بر اساس دسته‌بندی برای پیش‌نمایش
-  const { categorizedMenus, noCategoryMenus } = useMemo(() => {
-    const map = new Map<string, UserMenuAccess[]>();
-    
-    // منوهای بدون دسته‌بندی/ندارد را جدا می‌کنیم
-    const noCatMenus = userAccess
-        .filter(m => !m.category || m.category === "ندارد")
-        .sort((a, b) => a.priority - b.priority);
-
-    // منوهای دسته‌بندی شده را گروه‌بندی می‌کنیم (فقط آن‌هایی که دسته‌بندی دارند و "ندارد" نیستند)
-    userAccess
-        .filter(m => m.category && m.category !== "ندارد")
-        .forEach(m => {
-            const cat = m.category as string;
-            if (!map.has(cat)) map.set(cat, []);
-            map.get(cat)!.push(m);
-        });
-
-    // مرتب‌سازی بر اساس اولویت
-    map.forEach(menuList => menuList.sort((a, b) => a.priority - b.priority));
-
-    const categorizedList = Array.from(map.entries()).sort(([a], [b]) => 
-      a.localeCompare(b, 'fa') // مرتب‌سازی بر اساس نام دسته‌بندی
-    );
-    
-    // بازگرداندن آیتم‌های دسته‌بندی شده و بدون دسته‌بندی به صورت جداگانه
-    return { categorizedMenus: categorizedList, noCategoryMenus: noCatMenus };
-
-  }, [userAccess]);
-  
-  // ------------------ هندلرهای رویداد ------------------
-
-  const addMenuToAccess = (menu: MenuItemType) => {
-    // اگر قبلاً اضافه شده بود، آن را برای ویرایش باز کن
-    const exists = userAccess.find((x) => x.id === menu.id);
-    if (exists) {
-      setEditMenuId(menu.id);
-      return;
-    }
-    const next: UserMenuAccess = {
-      id: menu.id,
-      priority: userAccess.length + 1,
-      category: "ندارد", // کلید پیش‌فرض "ندارد"
-      defaultTitleFa: menu.titleFa,
-      defaultTitleEn: menu.titleEn,
-      customTitleFa: menu.titleFa, // در ابتدا نام سفارشی همان ندارد است
-      services: menu.services.map((s) => ({ ...s, checked: true })), // ندارد: همه فعال
-      routes: menu.routes.map((r) => ({ ...r, checked: true })), // ندارد: همه فعال
-    };
-    setUserAccess((prev) => [...prev, next]);
-    setEditMenuId(menu.id); // پس از افزودن، وارد حالت ویرایش شود
-  };
-
-  const handleEditChange = <K extends keyof UserMenuAccess>(menuId: string, k: K, v: UserMenuAccess[K]) => {
-    setUserAccess((prev) =>
-      prev.map((m) =>
-        m.id === menuId
-          ? { ...m, [k]: v }
-          : m
-      )
-    );
-  };
-
-  const toggleService = (menuId: string, key: string) => {
-    setUserAccess((prev) =>
-      prev.map((m) =>
-        m.id === menuId
-          ? {
-              ...m,
-              services: m.services.map((s) =>
-                s.key === key ? { ...s, checked: !s.checked } : s
-              ),
-            }
-          : m
-      )
-    );
-  };
-
-  const toggleRoute = (menuId: string, path: string) => {
-    setUserAccess((prev) =>
-      prev.map((m) =>
-        m.id === menuId
-          ? {
-              ...m,
-              routes: m.routes.map((r) =>
-                r.path === path ? { ...r, checked: !r.checked } : r
-              ),
-            }
-          : m
-      )
-    );
-  };
-
-  const handleDelete = (id: string) => {
-    setUserAccess((prev) => prev.filter((x) => x.id !== id));
-    setDeleteOpen({ open: false, id: undefined });
-    if (editMenuId === id) setEditMenuId(null);
-  };
-  
-  const handleEditSave = () => {
-    setEditMenuId(null); // بستن حالت ویرایش
-  }
-
-  // ------------------ رندرها ------------------
-
-  // کامپوننت رندر فرم ویرایش داخل آکاردئون
-  const EditFormContent = ({ m }: { m: UserMenuAccess }) => {
-    const isEditing = editMenuId === m.id;
-    
-    // اگر در حال ویرایش نیست، فقط دسترسی‌ها را نمایش بده
-    if (!isEditing) {
-        //... (قسمت نمایش خلاصه دسترسی بدون تغییر)
+    // اگر در حال ویرایش نیست و در حالت افزودن هم نیست، خلاصه را نشان بده (فقط برای ستون وسط)
+    if (!isEditing && !isAdding) {
         return (
             <AccordionDetails>
                 <Typography fontWeight={700} mb={1}>
@@ -499,7 +370,7 @@ export default function UserAccessManagement() {
         );
     }
 
-    // در حالت ویرایش: فرم کامل
+    // در حالت ویرایش یا افزودن: فرم کامل
     return (
       <AccordionDetails>
         <Stack spacing={2} pb={2}>
@@ -537,7 +408,7 @@ export default function UserAccessManagement() {
             </IconButton>
           </Box>
 
-          {/* 🔹 دسته‌بندی - با نمایش آیکون و حذف آیتم تکراری "بدون دسته‌بندی" */}
+          {/* 🔹 دسته‌بندی */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <TextField
               sx={{ ...LabelPosition({ right: 25, rightActive: 30 }) }}
@@ -546,11 +417,35 @@ export default function UserAccessManagement() {
               fullWidth
               value={m.category || ""}
               onChange={(e) => handleEditChange(m.id, "category", e.target.value)}
+              SelectProps={{
+                renderValue: (selectedValue: unknown) => {
+                  const categoryKey = selectedValue as string;
+                  // اطمینان از اینکه کلید 'ندارد' به درستی در حالت خالی رندر شود
+                  const finalKey = categoryKey === "" ? "ندارد" : categoryKey;
+                  const cInfo = getCategoryDisplay(finalKey);
+
+                  return (
+                    <Box 
+                      sx={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: 1, 
+                          // تنظیم موقعیت عمودی برای هم‌راستایی بهتر محتوا درون فیلد ورودی
+                          position: 'relative', 
+                          top: 1, 
+                      }}
+                    >
+                      {cInfo.icon}
+                      <Typography component="span" sx={{ lineHeight: 'normal' }}>
+                        {cInfo.label}
+                      </Typography>
+                    </Box>
+                  );
+                }
+              }}
             >
               {categories.map((cKey) => {
                 const cInfo = getCategoryDisplay(cKey);
-                // **حذف آیتم تکراری "بدون دسته‌بندی"** در اینجا اعمال شده است.
-                // آیتم‌های INIT_CATEGORIES (شامل "ندارد") به صورت زیر نمایش داده می‌شوند:
                 return (
                     <MenuItem 
                         key={cKey} 
@@ -562,7 +457,6 @@ export default function UserAccessManagement() {
                     </MenuItem>
                 );
               })}
-              {/* آیتم تکراری (بدون دسته‌بندی) حذف شد. اگر کاربر دسته‌بندی را خالی کند، از طریق مقدار value="" ذخیره می‌شود. */}
             </TextField>
             <IconButton
               color="success"
@@ -574,13 +468,7 @@ export default function UserAccessManagement() {
                 flexShrink: 0
               }}
               title="افزودن دسته‌بندی"
-              onClick={() => {
-                setAddCatOpen(true);
-                setPendingCatSetter(() => (val: string) => {
-                    // ✅ رفع خطای سینتکسی: حذف پرانتز اضافی قبل از Array.from
-                    setCategories((c) => Array.from(new Set([...c, val])));
-                });
-              }}
+              
             >
               <Add />
             </IconButton>
@@ -635,32 +523,260 @@ export default function UserAccessManagement() {
                     />
                   }
                   label={
-                    <Typography
-                      sx={{
-                        color: "#2e7d32",
-                        fontFamily: "monospace",
-                        direction: "ltr",
-                      }}
-                    >
-                      {r.path}
-                    </Typography>
+                    <Stack direction="column" spacing={0} alignItems="flex-start">
+                        <Typography variant="body2">{r.label}</Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: "#2e7d32",
+                            fontFamily: "monospace",
+                            direction: "ltr",
+                          }}
+                        >
+                          {r.path}
+                        </Typography>
+                    </Stack>
                   }
                 />
               ))}
             </Stack>
           </Box>
         </Stack>
-        {/* دکمه انصراف حذف شد، "ذخیره تغییرات" به "تأیید" تغییر نام یافت */}
+        {/* دکمه‌های نهایی بر اساس حالت (افزودن یا ویرایش) */}
         <Box sx={{display: 'flex', justifyContent: 'flex-end', gap: 1, pt:1}}>
-            <Button size="small" variant="outlined" color="error" onClick={() => setDeleteOpen({ open: true, id: m.id })}>
-                حذف
-            </Button>
-            <Button size="small" variant="contained" color="success" onClick={() => handleEditSave()}>
-                تأیید
-            </Button>
+            {isEditing && handleDelete && (
+                <Button size="small" variant="outlined" color="error" onClick={() => handleDelete(m.id)}>
+                    حذف
+                </Button>
+            )}
+            {isEditing && (
+                <Button size="small" variant="contained" color="success" onClick={handleEditSave}>
+                    تأیید
+                </Button>
+            )}
+            {isAdding && (
+                <Button
+                    size="small"
+                    variant="contained"
+                    onClick={handleAddFinal}
+                    sx={{ bgcolor: "#085E42", "&:hover": { bgcolor: "#064b35" } }}
+                >
+                    تأیید و افزودن
+                </Button>
+            )}
         </Box>
       </AccordionDetails>
     );
+};
+
+
+export default function UserAccessManagement() {
+  const [search, setSearch] = useState("");
+  const [categories] = useState<string[]>(INIT_CATEGORIES);
+  // ID منوی باز در ستون راست (جستجو)
+  const [resultsExpanded, setResultsExpanded] = useState<string | false>(false);
+  // ID منوی در حال ویرایش (آکاردئون باز ستون وسط)
+  const [editMenuId, setEditMenuId] = useState<string | null>(null); 
+  
+  // State موقت برای نگه داشتن داده‌های فرم ستون راست
+  const [tempMenuAccess, setTempMenuAccess] = useState<UserMenuAccess | null>(null);
+
+  // ستون وسط: دسترسی‌های فعلی کاربر
+  const [userAccess, setUserAccess] = useState<UserMenuAccess[]>([]);
+
+  // مودال‌ها
+  const [deleteOpen, setDeleteOpen] = useState<{
+    open: boolean;
+    id?: string;
+  }>({ open: false });
+  
+  // ------------------ منطق‌های محاسباتی و کمکی ------------------
+  
+  // ابزاری برای پیدا کردن آیکون و نام نمایشی بر اساس کلید دسته‌بندی
+  const getCategoryDisplay = (key: string | null | undefined): { label: string, icon: React.ReactNode } => {
+    const data = CATEGORIES_DATA.find(c => c.key === key);
+    if (data) return data;
+    
+    if (key === null || key === undefined || key === "" || key === "بدون دسته‌بندی") {
+        return { label: "بدون دسته‌بندی", icon: <NotInterested color="disabled" /> };
+    }
+    
+    return { label: key, icon: <ChevronLeft color="inherit" /> };
+  };
+
+
+  const filteredMenus = useMemo(() => {
+    const s = search.trim();
+    if (!s) return MOCK_MENUS;
+    return MOCK_MENUS.filter(
+      (m) =>
+        m.group.includes(s) ||
+        m.titleFa.includes(s) ||
+        m.titleEn.toLowerCase().includes(s.toLowerCase())
+    );
+  }, [search]);
+
+  // دسترسی‌های مدیر واحد پرورش گروه‌بندی شده بر اساس دسته‌بندی برای پیش‌نمایش
+  const { categorizedMenus, noCategoryMenus } = useMemo(() => {
+    const map = new Map<string, UserMenuAccess[]>();
+    
+    // منوهای بدون دسته‌بندی/ندارد را جدا می‌کنیم و بر اساس اولویت مرتب می‌کنیم
+    const noCatMenus = userAccess
+        .filter(m => !m.category || m.category === "ندارد")
+        .sort((a, b) => a.priority - b.priority);
+
+    // منوهای دسته‌بندی شده را گروه‌بندی و مرتب می‌کنیم
+    userAccess
+        .filter(m => m.category && m.category !== "ندارد")
+        .forEach(m => {
+            const cat = m.category as string;
+            if (!map.has(cat)) map.set(cat, []);
+            map.get(cat)!.push(m);
+        });
+
+    // مرتب‌سازی لیست منوها درون هر دسته‌بندی بر اساس اولویت
+    map.forEach(menuList => menuList.sort((a, b) => a.priority - b.priority));
+
+    // مرتب‌سازی دسته‌بندی‌ها بر اساس نام فارسی
+    const categorizedList = Array.from(map.entries()).sort(([a], [b]) => 
+      a.localeCompare(b, 'fa')
+    );
+    
+    return { categorizedMenus: categorizedList, noCategoryMenus: noCatMenus };
+
+  }, [userAccess]);
+  
+  // ------------------ هندلرهای رویداد ------------------
+
+  // هندلر برای تغییرات در فرم موقت ستون راست
+  const handleTempMenuChange = <K extends keyof UserMenuAccess>(menuId: string, k: K, v: UserMenuAccess[K]) => {
+    setTempMenuAccess(prev => prev ? { ...prev, [k]: v } : null);
+  };
+  
+  // هندلر برای تغییرات در چک‌باکس‌های فرم موقت ستون راست
+  const toggleTempService = (menuId: string, key: string) => {
+    setTempMenuAccess((prev) =>
+      prev
+        ? {
+            ...prev,
+            services: prev.services.map((s) =>
+              s.key === key ? { ...s, checked: !s.checked } : s
+            ),
+          }
+        : null
+    );
+  };
+
+  const toggleTempRoute = (menuId: string, path: string) => {
+    setTempMenuAccess((prev) =>
+      prev
+        ? {
+            ...prev,
+            routes: prev.routes.map((r) =>
+              r.path === path ? { ...r, checked: !r.checked } : r
+            ),
+          }
+        : null
+    );
+  };
+
+  // هندلر نهایی برای افزودن از ستون راست
+  const handleAddFinal = () => {
+    if (!tempMenuAccess) return;
+    
+    // اگر قبلاً اضافه شده بود، نیازی به افزودن دوباره نیست
+    const exists = userAccess.find((x) => x.id === tempMenuAccess.id);
+    if (!exists) {
+      // افزودن منوی موقت به لیست اصلی کاربر
+      const newMenu = { 
+          ...tempMenuAccess,
+          priority: tempMenuAccess.priority || userAccess.length + 1, // اگر اولویت تنظیم نشده بود، اولویت پیش فرض
+      };
+      setUserAccess((prev) => [...prev, newMenu]);
+    }
+
+    // بستن تمامی آکاردئون‌ها (ستون راست و وسط)
+    setResultsExpanded(false); 
+    setEditMenuId(null); 
+    setTempMenuAccess(null);
+  };
+
+  // ------------------ هندلرهای ستون وسط ------------------
+
+  const handleEditChange = <K extends keyof UserMenuAccess>(menuId: string, k: K, v: UserMenuAccess[K]) => {
+    setUserAccess((prev) =>
+      prev.map((m) =>
+        m.id === menuId
+          ? { ...m, [k]: v }
+          : m
+      )
+    );
+  };
+
+  const toggleService = (menuId: string, key: string) => {
+    setUserAccess((prev) =>
+      prev.map((m) =>
+        m.id === menuId
+          ? {
+              ...m,
+              services: m.services.map((s) =>
+                s.key === key ? { ...s, checked: !s.checked } : s
+              ),
+            }
+          : m
+      )
+    );
+  };
+
+  const toggleRoute = (menuId: string, path: string) => {
+    setUserAccess((prev) =>
+      prev.map((m) =>
+        m.id === menuId
+          ? {
+              ...m,
+              routes: m.routes.map((r) =>
+                r.path === path ? { ...r, checked: !r.checked } : r
+              ),
+            }
+          : m
+      )
+    );
+  };
+
+  const handleDelete = (id: string) => {
+    setUserAccess((prev) => prev.filter((x) => x.id !== id));
+    setDeleteOpen({ open: false, id: undefined });
+    if (editMenuId === id) setEditMenuId(null);
+  };
+  
+  const handleEditSave = () => {
+    setEditMenuId(null); 
+  }
+
+
+  // هندلر برای باز و بسته شدن آکاردئون‌های ستون راست
+  const handleResultAccordionChange = (menuId: string, isExpanded: boolean) => {
+    setResultsExpanded(isExpanded ? menuId : false);
+    if (isExpanded) {
+        // اگر آکاردئون باز شده، داده‌های آن را به tempMenuAccess منتقل کن
+        const menu = MOCK_MENUS.find(m => m.id === menuId);
+        if (menu) {
+            setTempMenuAccess({
+                id: menu.id,
+                priority: userAccess.length + 1, // اولویت پیش فرض
+                category: "ندارد", 
+                defaultTitleFa: menu.titleFa,
+                defaultTitleEn: menu.titleEn,
+                customTitleFa: menu.titleFa,
+                // همه سرویس‌ها و مسیرها در حالت افزودن باید فعال باشند
+                services: menu.services.map((s) => ({ ...s, checked: true })),
+                routes: menu.routes.map((r) => ({ ...r, checked: true })),
+            });
+        }
+    } else {
+        // اگر آکاردئون بسته شد، tempMenuAccess را پاک کن
+        setTempMenuAccess(null);
+    }
   };
 
 
@@ -680,21 +796,6 @@ export default function UserAccessManagement() {
         }}
       >
         <Stack direction="row" spacing={2} alignItems="center">
-          {/* <Box
-            sx={{
-              width: 44,
-              height: 44,
-              borderRadius: "50%",
-              bgcolor: "#e8f5e9",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: 700,
-              color: "#085E42",
-            }}
-          >
-            پ
-          </Box> */}
           <Box >
             <Typography sx={{mx:1}} fontWeight={700}>مدیر واحد پرورش</Typography>
             <Typography sx={{mx:1}} variant="body2" color="text.secondary">
@@ -702,22 +803,6 @@ export default function UserAccessManagement() {
             </Typography>
           </Box>
         </Stack>
-
-        <Box sx={{display:'flex',gap:1}}>
-          <Box sx={{display: 'flex', justifyContent: 'flex-end', mt: 2}}>
-              <Button
-                  size="small"
-                  variant="contained"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate('/')
-                  }}
-                  sx={{ bgcolor: "#085E42", "&:hover": { bgcolor: "#064b35" } }}
-              >
-                  تایید نهایی
-              </Button>
-          </Box>
-        </Box>
       </Paper>
 
       {/* سه ستون */}
@@ -737,22 +822,29 @@ export default function UserAccessManagement() {
             />
             <Divider sx={{ my: 2 }} />
             <Stack spacing={1}>
-              {filteredMenus.map((m) => (
+              {filteredMenus.map((m) => {
+                const isExpanded = resultsExpanded === m.id;
+                
+                return (
                 <Accordion
                   key={m.id}
-                  expanded={resultsExpanded === m.id}
-                  onChange={(_, ex) => setResultsExpanded(ex ? m.id : false)}
+                  expanded={isExpanded}
+                  onChange={(_, ex) => handleResultAccordionChange(m.id, ex)} 
                   slotProps={{
                     transition: { timeout: 200 },
                   }}
                   sx={{
                     borderRadius: 2,
                     "&:before": { display: "none" },
-                    border: "1px solid #e5e7eb",
+                    border: isExpanded ? "2px solid #085E42" : "1px solid #e5e7eb",
+                    bgcolor: isExpanded ? "#e8f5e9" : "#fff",
                   }}
                 >
-                  {/* دکمه "تأیید و افزودن" از اینجا حذف و به داخل AccordionDetails منتقل شد */}
-                  <AccordionSummary expandIcon={<ExpandMore />}>
+                  <AccordionSummary 
+                    expandIcon={<ExpandMore />}
+                    // تنظیم مارجین ثابت برای رفع پرش عرضی
+                    sx={{'& .MuiAccordionSummary-content': {margin: '12px 0 !important'}}} 
+                  >
                     <Stack
                       direction="row"
                       spacing={1}
@@ -770,52 +862,30 @@ export default function UserAccessManagement() {
                       </Stack>
                     </Stack>
                   </AccordionSummary>
-                  <AccordionDetails>
-                    <Typography fontWeight={700} mb={1}>
-                      دسترسی سرویس‌ها (پیش‌نمایش)
-                    </Typography>
-                    <Stack>
-                      {m.services.map((s) => (
-                        <Typography key={s.key} variant="body2">• {s.label}</Typography>
-                      ))}
-                    </Stack>
-                    <Divider sx={{ my: 2 }} />
-                    <Typography fontWeight={700} mb={1}>
-                      دسترسی آدرس‌های داخلی (پیش‌نمایش)
-                    </Typography>
-                    <Stack spacing={0.5}>
-                      {m.routes.map((r) => (
-                        <Typography key={r.path} variant="body2">
-                            ↳ {r.label}
-                            <Typography variant="caption" color="text.secondary" dir="rtl" ml={1}>
-                                {r.path}
-                            </Typography>
-                        </Typography>
-                      ))}
-                    </Stack>
-                    {/* دکمه "تأیید و افزودن" در انتهای محتوا قرار گرفت */}
-                    <Box sx={{display: 'flex', justifyContent: 'flex-end', mt: 2}}>
-                        <Button
-                            size="small"
-                            variant="contained"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              addMenuToAccess(m);
-                            }}
-                            sx={{ bgcolor: "#085E42", "&:hover": { bgcolor: "#064b35" } }}
-                        >
-                            تأیید و افزودن
-                        </Button>
-                    </Box>
-                  </AccordionDetails>
+                  
+                  {/* استفاده از کامپوننت فرم کامل */}
+                  {isExpanded && tempMenuAccess && tempMenuAccess.id === m.id && (
+                    <MenuSelectionForm 
+                        m={tempMenuAccess}
+                        isEditing={false}
+                        isAdding={true}
+                        categories={categories}
+                        getCategoryDisplay={getCategoryDisplay}
+                        handleEditChange={handleTempMenuChange}
+                        toggleService={toggleTempService}
+                        toggleRoute={toggleTempRoute}
+                        handleEditSave={() => {}} // هندلر لازم نیست
+                        handleAddFinal={handleAddFinal}
+                    />
+                  )}
                 </Accordion>
-              ))}
+              );})}
             </Stack>
           </Paper>
         </Grid>
 
         {/* ستون وسط: دسترسی‌های انتخاب‌شده کاربر (با امکان ویرایش درون خطی) - عرض 6 */}
-        <Grid size={{xs:12,md:6}}>
+        <Grid size={{xs:12,md:6}} >
           <Paper sx={{ p: 2, borderRadius: 2 }}>
             <Typography fontWeight={700} mb={1}>
               دسترسی‌های مدیر واحد پرورش
@@ -882,7 +952,20 @@ export default function UserAccessManagement() {
                       </AccordionSummary>
                       
                       {/* محتوای داخلی: فرم ویرایش یا خلاصه دسترسی */}
-                      <EditFormContent m={m} />
+                      <MenuSelectionForm 
+                        m={m}
+                        isEditing={isEditing} // حالت ویرایش را فعال می‌کند
+                        isAdding={false}
+                        categories={categories}
+                        getCategoryDisplay={getCategoryDisplay}
+                        handleEditChange={handleEditChange}
+                        toggleService={toggleService}
+                        toggleRoute={toggleRoute}
+                        handleEditSave={handleEditSave}
+                        handleDelete={(id) => setDeleteOpen({ open: true, id: id })}
+                        handleAddFinal={() => {}} // هندلر لازم نیست
+                        
+                      />
                       
                     </Accordion>
                   );
@@ -893,7 +976,7 @@ export default function UserAccessManagement() {
         </Grid>
 
         {/* ستون چپ: پیش‌نمایش ساختار درختی (بر اساس دسته‌بندی) - عرض 3 */}
-        <Grid size={{xs:12,md:3}}>
+        <Grid size={{xs:12,md:3}} >
           <Paper sx={{ p: 2, borderRadius: 2 }}>
             <Typography fontWeight={700} mb={1}>
               پیش‌نمایش نهایی دسترسی‌ها
@@ -905,52 +988,55 @@ export default function UserAccessManagement() {
                 </Typography>
             ) : (
                 <Stack spacing={1}>
-                    {/* ✅ نمایش منوهای بدون دسته‌بندی به صورت لیست کاملاً مستقل و خارج از آکاردئون */}
+                    {/* ✅ نمایش منوهای بدون دسته‌بندی به صورت آیتم‌های مجزا با فاصله و بک‌گراند */}
                     {noCategoryMenus.length > 0 && (
-                        <List 
-                            disablePadding 
-                            dense 
-                            sx={{
-                                mb: 1, 
-                                border: '1px solid #d1d1d1', 
-                                borderRadius: 2, 
-                                bgcolor: '#fff',
-                                // اگر فقط آیتم بدون دسته‌بندی داشته باشیم، فاصله پایین نمی‌گذاریم
-                                ...(categorizedMenus.length === 0 ? { mb: 0 } : {})
-                            }}
-                        >
-                            {noCategoryMenus.map((m, index) => {
+                        <Stack spacing={1} mb={1}> 
+                            {noCategoryMenus.map((m) => {
                                 const menuIcon = MOCK_MENUS.find((item) => item.id === m.id)?.icon || <Home />;
                                 return (
                                     <Box 
                                         key={m.id} 
                                         sx={{ 
                                             // حذف خط جداکننده برای آخرین آیتم
-                                            borderBottom: index < noCategoryMenus.length - 1 ? '1px solid #eee' : 'none' 
+                                            border: '1px solid #ccc ' ,
+                                            boxShadow:"0 1px 2px #aaa",
+                                            borderRadius:'8px',
+                                            background:'#F0F0F0',
+
                                         }}
                                     >
                                         <ListItem sx={{ pl: 1, pt: 1, pb: 1 }}>
                                             <ListItemIcon sx={{ minWidth: 28, color: '#085E42' }}>
                                                 {menuIcon}
                                             </ListItemIcon>
-                                            <ListItemText
-                                                primary={
+                                            
+                                            {/* ✅ شروع اصلاح: ادغام عنوان اصلی و عنوان پیش‌فرض در یک Stack */}
+                                            <ListItemText disableTypography>
+                                                <Stack direction="row" alignItems="center" spacing={1}>
                                                     <Typography fontWeight={600} variant="body2">
                                                         {m.customTitleFa}
                                                     </Typography>
-                                                }
-                                                secondary={m.customTitleFa !== m.defaultTitleFa ? `(${m.defaultTitleFa})` : null}
-                                                secondaryTypographyProps={{
-                                                  dir: 'rtl',
-                                                  variant: 'caption',
-                                                  color: 'text.secondary',
-                                                }}
-                                            />
+                                                    {m.customTitleFa !== m.defaultTitleFa && (
+                                                        <Typography
+                                                            variant="body2"
+                                                            sx={{
+                                                                fontWeight: 200,
+                                                                fontSize: '0.675rem',
+                                                                color: 'text.secondary',
+                                                            }}
+                                                        >
+                                                            ({m.defaultTitleFa})
+                                                        </Typography>
+                                                    )}
+                                                </Stack>
+                                            </ListItemText>
+                                            {/* پایان اصلاح */}
+                                            
                                         </ListItem>
                                     </Box>
                                 );
                             })}
-                        </List>
+                        </Stack>
                     )}
                     
                     {/* نمایش منوهای دسته‌بندی شده (داخل آکاردئون) */}
@@ -979,7 +1065,6 @@ export default function UserAccessManagement() {
                                 }}
                             >
                                 <Stack direction="row" spacing={1} alignItems="center">
-                                    {/* آیکون برای دسته‌بندی */}
                                     <ListItemIcon sx={{ minWidth: 28, color: '#3f51b5' }}>
                                         {categoryInfo.icon} 
                                     </ListItemIcon>
@@ -991,9 +1076,8 @@ export default function UserAccessManagement() {
 
                             <AccordionDetails sx={{p: 0, borderTop: '1px solid #ccc'}}>
                                 <List disablePadding dense>
+                                  {/* منوهای داخل دسته‌بندی قبلاً بر اساس priority مرتب شده‌اند */}
                                   {menus.map((m, index) => {
-                                    
-
                                     const menuIcon = MOCK_MENUS.find((item) => item.id === m.id)?.icon || <Home />;
 
                                     return (
@@ -1058,17 +1142,6 @@ export default function UserAccessManagement() {
         description="آیا از حذف این دسترسی مطمئن هستید؟"
         onCancel={() => setDeleteOpen({ open: false })}
         onConfirm={() => deleteOpen.id && handleDelete(deleteOpen.id)}
-      />
-
-      {/* مودال افزودن دسته‌بندی */}
-      <AddMenuCategoryModal
-        open={addCatOpen}
-        onClose={() => setAddCatOpen(false)}
-        onCreated={(cat) => {
-          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-          pendingCatSetter && pendingCatSetter(cat);
-          setAddCatOpen(false);
-        }}
       />
     </Box>
   );
