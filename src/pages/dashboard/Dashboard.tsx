@@ -37,7 +37,7 @@ const USER_MANAGEMENT_ITEMS: DashboardItem[] = [
 const DEVELOPER_ITEMS: DashboardItem[] = [
   { id: 7, label: "مدیریت صفحات", icon: <Description />, path: "/add-page" },
   { id: 8, label: "گروه بندی صفحات", icon: <DeveloperBoard />, path: "/category-page" },
-  { id: 9, label: "سرویس", icon: <Terminal />, path: "" },
+  { id: 9, label: "سرویس", icon: <Terminal />, path: "add-service" },
 ];
 
 // ------------------ داده‌های فلوچارت جدید ------------------
