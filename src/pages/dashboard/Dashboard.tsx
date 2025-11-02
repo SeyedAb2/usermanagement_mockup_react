@@ -11,6 +11,8 @@ import {
   Terminal, 
   Description, 
   AccountBox, 
+  Storage, // آیکون جدید: برای میکروسرویس یا گروه بندی سرویس
+  Polyline,
   ArrowBack, // **تغییر ۱: استفاده از ArrowBack برای جهت RTL و اتصال مراحل**
 } from "@mui/icons-material";
 import { useState, ReactNode } from "react";
@@ -35,9 +37,11 @@ const USER_MANAGEMENT_ITEMS: DashboardItem[] = [
 ];
 
 const DEVELOPER_ITEMS: DashboardItem[] = [
-  { id: 7, label: "مدیریت صفحات", icon: <Description />, path: "/add-page" },
-  { id: 8, label: "گروه بندی صفحات", icon: <DeveloperBoard />, path: "/category-page" },
   { id: 9, label: "سرویس", icon: <Terminal />, path: "add-service" },
+  { id: 11, label: "گروه بندی سرویس", icon: <Polyline />, path: "/add-service-group" },
+  { id: 10, label: "میکروسرویس", icon: <Storage />, path: "/add-micro-service" },
+  { id: 8, label: "گروه بندی صفحات", icon: <DeveloperBoard />, path: "/category-page" },
+  { id: 7, label: "مدیریت صفحات", icon: <Description />, path: "/add-page" },
 ];
 
 // ------------------ داده‌های فلوچارت جدید ------------------

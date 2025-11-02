@@ -14,6 +14,8 @@ const UserAccessManagement = lazy(() => import("../../pages/UserAccessManagement
 const CategoryPage = lazy(() => import("../../pages/CategoryPage/CategoryPage"));
 const AddPage = lazy(() => import("../../pages/AddPage/AddPage"));
 const AddService = lazy(() => import("../../pages/AddService/AddService"));
+const AddMicroService = lazy(() => import("../../pages/AddMicroService/AddMicroService"));
+const AddServiceGroup = lazy(() => import("../../pages/AddServiceGroup/AddServiceGroup"));
 
 const router = createBrowserRouter([
   {
@@ -30,6 +32,8 @@ const router = createBrowserRouter([
       { path: "access-role", element: <UserAccessManagement /> },
       { path: "category-page", element: <CategoryPage /> },
       { path: "add-page", element: <AddPage /> },
+      { path: "add-service-group", element: <AddServiceGroup /> },
+      { path: "add-micro-service", element: <AddMicroService /> },
       { path: "add-service", element: <AddService /> },
     ],
   },
