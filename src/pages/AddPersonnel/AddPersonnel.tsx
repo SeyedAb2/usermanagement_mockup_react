@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { ChangeEvent, useMemo, useState } from "react";
 import {
   Box, Paper, Stepper, Step, StepLabel, Button, Typography, Grid,
   TextField, MenuItem, Checkbox, Stack, Radio, RadioGroup,
@@ -387,9 +387,10 @@ export default function AddPersonnelStepper() {
   // -------------------------- استپ ۲ (انتخاب نقش در راست + ترتیب در وسط + منوها در چپ) --------------------------
   const StepTwoAccess = () => {
     // افزودن/حذف نقش از انتخاب‌شده‌ها
-    const toggleRole = (role: string, checked: boolean) => {
+    const toggleRole = (e:ChangeEvent<HTMLInputElement> | null = null, role: string, checked: boolean) => {
       setRolesOrder((prev) => {
         if (checked) {
+          console.log(e);
           if (prev.includes(role)) return prev;
           return [...prev, role]; // نقش جدید به انتهای لیست (کم‌اولویت‌تر)
         } else {
@@ -417,7 +418,7 @@ export default function AddPersonnelStepper() {
 
     const filteredAllRoles = useMemo(
       () => ROLES.filter((r) => r.includes(roleSearch.trim())),
-      [roleSearch]
+      []
     );
 
     return (
@@ -544,7 +545,7 @@ export default function AddPersonnelStepper() {
                           <Checkbox
                             edge="end"
                             checked={checked}
-                            onChange={(e, v) => toggleRole(r, v)}
+                            onChange={(e, v) => toggleRole(e, r, v)}
                           />
                         }
                       >
