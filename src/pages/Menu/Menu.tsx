@@ -578,7 +578,7 @@ export default function Menu() {
             sx={{ ...commonInputSx, mt: 0, mb: 1 }}
             InputProps={{
               startAdornment: (
-                <InputAdornment position="start" sx={{ ml: 1, mr: 0 }}>
+                <InputAdornment position="start" sx={{ ml: 0, mr: 2 }}>
                   <SearchIcon />
                 </InputAdornment>
               ),

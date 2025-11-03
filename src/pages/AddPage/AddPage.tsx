@@ -19,7 +19,6 @@ import {
   List,
   ListItem,
   Chip,
-  useTheme,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -213,7 +212,6 @@ const steps = [
 
 export default function AddPage() {
   const navigate = useNavigate();
-  const theme = useTheme(); 
   const [activeStep, setActiveStep] = useState(0);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false); 
@@ -534,7 +532,7 @@ export default function AddPage() {
                                 </Typography>
                                 
                                 {/* 🚨 نمایش دسترسی‌ها */}
-                                <Typography variant="body2" fontWeight="bold" sx={{ mt: 1 }}>دسترسی‌های مرتبط:</Typography>
+                                <Typography variant="body2" fontWeight="bold" sx={{ my: 1 }}>دسترسی‌های مرتبط:</Typography>
                                 <List dense disablePadding>
                                     {page.relatedServices && page.relatedServices.length > 0 ? (
                                         page.relatedServices.map(s => (
@@ -585,8 +583,7 @@ export default function AddPage() {
   const renderStep3Services = () => {
     const currentServiceAccesses = getValues('serviceAccesses');
     const selectedServicesDetails = mockServices.filter(s => currentServiceAccesses.includes(s.nameEn));
-    const selectedSubPages = getValues('subPages'); 
-    const relatedSubPageDetails = mockSubPages.filter(p => selectedSubPages.includes(p.id) && p.relatedServices && p.relatedServices.length > 0);
+    
 
     return (
       <Box sx={{ display: 'flex', gap: 4, flexDirection: { xs: 'column', md: 'row' } }}>
@@ -708,65 +705,7 @@ export default function AddPage() {
         
         {/* بخش چپ: لیست سرویس‌های انتخابی و دسترسی‌های زیرصفحات */}
         <Box sx={{ flex: 1, minWidth: 250 }}>
-          <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#085E42', textAlign: 'right', mb: 1 }}>
-            لیست سرویس‌های دسترسی
-          </Typography>
-
-          {/* نمایش دسترسی‌های صفحات وابسته (گرفته شده از مرحله ۲) */}
-          {relatedSubPageDetails.length > 0 && (
-            <Box component={Paper} elevation={1} sx={{ p: 2, mb: 3, bgcolor: '#e8f5e9', borderRight: '4px solid #085E42', textAlign: 'right', borderRadius: '10px' }}>
-              <Typography variant="body2" fontWeight="bold" color="#064b35" sx={{ mb: 1 }}>دسترسی‌های صفحات وابسته:</Typography>
-              {relatedSubPageDetails.map(page => { 
-                return (
-                  <Box key={page.id} sx={{ mb: 1, borderBottom: '1px dotted #ccc', pb: 1 }}>
-                    <Typography variant="body2" fontWeight="bold" sx={{ color: '#00574b' }}>
-                      {page.name} <Typography component="span" variant="caption" color="text.secondary">({page.url})</Typography>
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5, justifyContent: 'flex-end', width: '100%' }}>
-                      {page.relatedServices!.map(s => (
-                        <Chip 
-                          key={s.nameEn}
-                          label={
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, py: 0.5 }}>
-                              <Typography variant="body2" component="span" fontWeight="bold">{s.nameFa}</Typography>
-                              <Box 
-                                component="span" 
-                                sx={{ 
-                                  bgcolor: methodColors[s.method], 
-                                  color: 'white', 
-                                  px: 1, 
-                                  py: 0.5, 
-                                  borderRadius: '20px', 
-                                  fontSize: '0.65rem', 
-                                  fontWeight: 'bold',
-                                  lineHeight: 1
-                                }}
-                              >
-                                {s.method}
-                              </Box>
-                            </Box>
-                          }
-                          size="small"
-                          sx={{ 
-                            bgcolor: '#fff', 
-                            color: theme.palette.text.primary, 
-                            border: `1px solid ${methodColors[s.method]}`,
-                            height: 'auto',
-                            py: 0.5,
-                            px: 1,
-                            '& .MuiChip-label': { pr: 0, pl: 0, overflow: 'visible' },
-                          }}
-                        />
-                      ))}
-                    </Box>
-                  </Box>
-                ); 
-              })} 
-              <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
-                (این دسترسی‌ها خودکار به صفحه اصلی اعمال می‌شوند و فقط جنبه نمایشی دارند)
-              </Typography>
-            </Box>
-          )}
+          
 
           {/* لیست سرویس‌های انتخابی */}
           <Box sx={{ maxHeight: 300, overflowY: 'auto', p: 1, border: '1px solid #ddd', borderRadius: '10px', textAlign: 'right' }}>
