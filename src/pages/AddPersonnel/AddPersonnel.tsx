@@ -19,7 +19,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Tooltip } from "@mui/material";
 import DeleteForeverRounded from "@mui/icons-material/DeleteForeverRounded";
-import { LabelPosition } from "../../shared/utils/textFieldLabelStyleConfig"; 
+import { LabelPosition } from "../../shared/utils/textFieldLabelStyleConfig";
 
 // -------------------------- انواع/ثابت‌ها --------------------------
 type PersonnelForm = yup.InferType<typeof schema>;
