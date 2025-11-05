@@ -113,7 +113,7 @@ const getMenuIcon = (m: RoleMenu) => {
 };
 
 // -------------------------- کامپوننت اصلی استپری --------------------------
-export default function AddPersonnelStepper() {
+export default function AddPersonnel() {
   const [activeStep, setActiveStep] = useState(0);
   const [personData, setPersonData] = useState<PersonnelForm | null>(null);
 
